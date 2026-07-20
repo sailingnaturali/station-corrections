@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      # The corrections file is hand-edited and PR-able, so it is checked on
+      # every change: reason required with position, no context that restates
+      # the name, no duplicate slugs.
+      - run: node bin/station-corrections.mjs validate
