@@ -17,11 +17,11 @@ const EXPAND = [
 
 function titleCaseWord(word, first) {
   const bare = word.replace(/[^A-Za-z]/g, "");
-  if (KEEP.has(bare.toUpperCase()) && bare === bare.toUpperCase()) return word;
+  if (KEEP.has(bare.toUpperCase())) return word;
   const lower = word.toLowerCase();
   if (!first && MINOR.has(lower)) return lower;
-  // Hyphens and slashes each start a new capital: "spee-bi-dah".
-  return lower.replace(/(^|[-/(])([a-z])/g, (_, lead, letter) => lead + letter.toUpperCase());
+  // Hyphens, slashes, and apostrophes each start a new capital: "spee-bi-dah", "o'brien".
+  return lower.replace(/(^|[-/('’])([a-z])/g, (_, lead, letter) => lead + letter.toUpperCase());
 }
 
 /**

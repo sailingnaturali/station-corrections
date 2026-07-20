@@ -10,9 +10,14 @@ test("calms names that shout", () => {
 
 test("leaves human-cased names untouched", () => {
   // These carry capitalisation we could not reconstruct if we flattened them.
-  for (const name of ["Spee-Bi-Dah", "La Push", "Friday Harbor", "McArthur Bank"]) {
+  for (const name of ["Spee-Bi-Dah", "La Push", "Friday Harbor", "McArthur Bank", "O'Brien Point"]) {
     assert.equal(cleanName(name), name);
   }
+});
+
+test("apostrophes do not start a new capital", () => {
+  assert.equal(cleanName("O'BRIEN POINT"), "O'Brien Point");
+  assert.equal(cleanName("O’BRIEN POINT"), "O’Brien Point");
 });
 
 test("keeps acronyms that are not shouting", () => {
