@@ -1,0 +1,21 @@
+{
+  "name": "@sailingnaturali/station-corrections",
+  "version": "1.0.0",
+  "description": "Friendly names, search aliases and corrected positions for tide and current stations",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sailingnaturali/station-corrections.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/sailingnaturali/station-corrections/issues"
+  },
+  "homepage": "https://github.com/sailingnaturali/station-corrections#readme"
+}
