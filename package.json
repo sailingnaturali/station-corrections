@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/sailingnaturali/station-corrections/issues"
   },
-  "homepage": "https://github.com/sailingnaturali/station-corrections#readme"
+  "homepage": "https://github.com/sailingnaturali/station-corrections#readme",
+  "dependencies": {
+    "yaml": "^2.9.0"
+  }
 }

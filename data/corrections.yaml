@@ -1,0 +1,21 @@
+# Corrections to published station data. One record per station, keyed by
+# provider ID. Every field is optional except `reason`, which is required
+# whenever `position` is set.
+#
+# `context` is whatever most usefully distinguishes this place — a water body,
+# an island group, a region, a county, or a characteristic. It must never
+# restate the name.
+
+noaa/9447659:
+  name: Everett
+  context: Port Gardner
+  slug: everett
+  cities: [Everett, Marysville]
+  aliases: [port gardner, everett marina]
+
+noaa/9448682:
+  name: Anacortes
+  context: Guemes Channel
+  slug: anacortes
+  cities: [Anacortes]
+  aliases: [guemes channel, cap sante]
