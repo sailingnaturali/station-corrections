@@ -67,10 +67,11 @@ export function nearestWater(lat, lon) {
   };
 }
 
-/** Distance inland in metres: 0 in water, otherwise distance to nearest water. */
+/** Distance inland in metres: 0 in water, Infinity when no water is found within the search radius, otherwise distance to nearest water. */
 export function inlandMetres(lat, lon) {
   if (!isOnLand(lat, lon)) return 0;
   const found = ringSearchWater(lat, lon);
-  if (!found) throw new Error(`no water within 20 km of ${lat}, ${lon}`);
-  return found.metres;
+  // ponytail: unlike nearestWater (which must throw - its callers need an answer),
+  // inlandMetres promises "always a number" so a batch audit survives one bad row.
+  return found ? found.metres : Infinity;
 }

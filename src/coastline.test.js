@@ -31,6 +31,24 @@ test("a pier-mounted gauge is under the reporting threshold", () => {
   assert.ok(inlandMetres(48.546, -123.013) < 200);
 });
 
+test("a pier-mounted gauge is still on land", () => {
+  // The golden-point band (+/-40 m around 31) accepts 0, and 0 means "water" -
+  // exactly the Natural Earth misclassification this package exists to catch.
+  // This assertion is what actually guards against that regression.
+  assert.equal(isOnLand(48.546, -123.013), true);
+});
+
+test("inlandMetres never throws: far inland with no mapped water returns Infinity", () => {
+  // A true mid-continent point (e.g. 47.0, -100.0, central North Dakota) falls
+  // entirely outside this bundled coastline's bbox, so isOnLand reports false
+  // there and inlandMetres never even reaches the ring search - it can't
+  // exercise the bug. Whistler, BC is inside the bbox, genuinely on land, and
+  // has no mapped water within the 20 km search radius, so it does exercise it.
+  // The documented contract is "always a number" - a batch audit of many
+  // stations must not die because one row's coordinate has no nearby water.
+  assert.equal(inlandMetres(50.12, -122.95), Infinity);
+});
+
 test("nearest water from an inland point is in water and close by", () => {
   const found = nearestWater(48.5100, -122.6100);
   assert.equal(isOnLand(found.latitude, found.longitude), false);
