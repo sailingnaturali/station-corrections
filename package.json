@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/sailingnaturali/station-corrections#readme",
   "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.3.5",
+    "@turf/helpers": "^7.3.5",
     "yaml": "^2.9.0"
   }
 }

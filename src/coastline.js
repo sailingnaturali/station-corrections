@@ -1,0 +1,76 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+import { point } from "@turf/helpers";
+
+const coastline = JSON.parse(
+  readFileSync(fileURLToPath(new URL("../data/coastline.geojson", import.meta.url)), "utf8"),
+);
+
+/** Is this position on land? */
+export function isOnLand(lat, lon) {
+  const at = point([lon, lat]);
+  return coastline.features.some((feature) => booleanPointInPolygon(at, feature));
+}
+
+const EARTH_M = 6_371_000;
+
+function metresBetween(aLat, aLon, bLat, bLon) {
+  const toRad = Math.PI / 180;
+  const dLat = (bLat - aLat) * toRad;
+  const dLon = (bLon - aLon) * toRad;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * toRad) * Math.cos(bLat * toRad) * Math.sin(dLon / 2) ** 2;
+  return EARTH_M * 2 * Math.asin(Math.sqrt(h));
+}
+
+/**
+ * Expanding ring search for the nearest water point, starting at a fine
+ * radius so short distances (a gauge a few metres up a pier) are measured
+ * accurately rather than snapping to the first ring's radius.
+ *
+ * Deliberately coarse beyond that: this only ever produces a *suggestion*
+ * for a human to check, because nearest water is frequently the wrong side
+ * of a spit or the wrong bay entirely.
+ */
+function ringSearchWater(lat, lon) {
+  for (let radiusM = 5; radiusM <= 20_000; radiusM *= 1.3) {
+    const dLat = (radiusM / EARTH_M) * (180 / Math.PI);
+    const dLon = dLat / Math.cos((lat * Math.PI) / 180);
+    for (let bearing = 0; bearing < 360; bearing += 10) {
+      const rad = (bearing * Math.PI) / 180;
+      const testLat = lat + dLat * Math.cos(rad);
+      const testLon = lon + dLon * Math.sin(rad);
+      if (!isOnLand(testLat, testLon)) {
+        return {
+          latitude: testLat,
+          longitude: testLon,
+          metres: Math.round(metresBetween(lat, lon, testLat, testLon)),
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/** Nearest water to a position. */
+export function nearestWater(lat, lon) {
+  if (!isOnLand(lat, lon)) return { latitude: lat, longitude: lon, metres: 0 };
+
+  const found = ringSearchWater(lat, lon);
+  if (!found) throw new Error(`no water within 20 km of ${lat}, ${lon}`);
+  return {
+    latitude: Number(found.latitude.toFixed(4)),
+    longitude: Number(found.longitude.toFixed(4)),
+    metres: found.metres,
+  };
+}
+
+/** Distance inland in metres: 0 in water, otherwise distance to nearest water. */
+export function inlandMetres(lat, lon) {
+  if (!isOnLand(lat, lon)) return 0;
+  const found = ringSearchWater(lat, lon);
+  if (!found) throw new Error(`no water within 20 km of ${lat}, ${lon}`);
+  return found.metres;
+}
