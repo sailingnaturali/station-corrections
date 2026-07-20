@@ -23,7 +23,27 @@ if (command === "audit") {
     console.error("usage: station-corrections audit <stations.json>");
     process.exit(1);
   }
-  const stations = JSON.parse(readFileSync(stationsPath, "utf8"));
+  let raw;
+  try {
+    raw = readFileSync(stationsPath, "utf8");
+  } catch (err) {
+    console.error(`audit: could not read ${stationsPath} (${err.code === "ENOENT" ? "no such file" : err.message})`);
+    process.exit(1);
+  }
+
+  let stations;
+  try {
+    stations = JSON.parse(raw);
+  } catch (err) {
+    console.error(`audit: ${stationsPath} is not valid JSON (${err.message})`);
+    process.exit(1);
+  }
+
+  if (!Array.isArray(stations) || stations.some((s) => typeof s !== "object" || s === null || Array.isArray(s))) {
+    console.error(`audit: ${stationsPath} must contain a JSON array of station objects`);
+    process.exit(1);
+  }
+
   const findings = auditStations(stations, { resolve: createResolver({ corrections }) });
   for (const finding of findings) {
     console.log(`${finding.id.padEnd(16)} ${finding.name.padEnd(24)} ${finding.metresInland} m inland`);

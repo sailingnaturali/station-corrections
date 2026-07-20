@@ -48,6 +48,21 @@ noaa/9448682:
   assert.deepEqual(findings, []);
 });
 
+test("a custom thresholdM changes which stations are reported", () => {
+  // Friday Harbor, 48.5460, -123.0130: measured 31 m inland against the
+  // bundled coastline - correctly sited under the 200 m default (a gauge on
+  // a pier), but past a stricter 20 m threshold. Same station, same
+  // resolver; only thresholdM differs.
+  const station = { id: "noaa/9449880", name: "FRIDAY HARBOR", latitude: 48.546, longitude: -123.013 };
+
+  const atDefault = auditStations([station], { resolve });
+  assert.deepEqual(atDefault, []);
+
+  const atStrictThreshold = auditStations([station], { resolve, thresholdM: 20 });
+  assert.equal(atStrictThreshold.length, 1);
+  assert.equal(atStrictThreshold[0].metresInland, 31);
+});
+
 test("reports rather than throws when no water is found within range", () => {
   // Whistler, BC: on land, past the threshold, and has no mapped water within
   // nearestWater's 20 km search radius - it throws. A batch audit of many
