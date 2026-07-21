@@ -40,6 +40,12 @@ that need the raw shipped files can reach them via the `./data/*` export subpath
 `import("@sailingnaturali/station-corrections/data/corrections.yaml")` with an import attribute,
 or `createRequire(import.meta.url).resolve(...)` to get a filesystem path.
 
+Checking that a corrected `position` actually lands in water (`validatePositions`) is exposed the
+same opt-in way, via `import { validatePositions } from "@sailingnaturali/station-corrections/validate-positions"`
+— it is not re-exported from the package root because it pulls in the 3.6 MB coastline parse, and
+the root import must stay cheap. A consumer validating their own corrections file, the same way the
+CLI's `validate` command does, imports this subpath directly.
+
 ## Three tiers
 
 Every lookup resolves highest-first:

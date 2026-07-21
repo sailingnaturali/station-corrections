@@ -36,7 +36,8 @@
   },
   "exports": {
     ".": "./src/index.js",
-    "./data/*": "./data/*"
+    "./data/*": "./data/*",
+    "./validate-positions": "./src/validate-positions.js"
   },
   "files": [
     "src",

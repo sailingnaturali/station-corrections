@@ -7,6 +7,7 @@ export { createResolver } from "./resolve.js";
 export { loadCorrections, validateCorrections } from "./corrections.js";
 export { cleanName } from "./clean.js";
 export { toSlug } from "./slug.js";
+export { buildLock, readLock, diffLock } from "./lock.js";
 
 const bundledPath = (name) => fileURLToPath(new URL(`../data/${name}`, import.meta.url));
 
