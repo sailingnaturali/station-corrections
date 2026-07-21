@@ -16,6 +16,23 @@ export interface Station {
   longitude: number;
 }
 
+/**
+ * A station identified by id alone.
+ *
+ * Valid input only when the registry owns that id, because the registry
+ * supplies the name and position the provider data would otherwise carry.
+ * This is the normal way to look up a registry station — CHS current data,
+ * for instance, ships no position at all.
+ *
+ * Types cannot express "only if this id is in the registry", so a resolver
+ * accepts either shape and an unknown id falls through to the overlay path,
+ * where a missing name resolves to the string "undefined" rather than
+ * throwing. Pass a full `Station` for anything the registry does not own.
+ */
+export interface StationRef {
+  id: string;
+}
+
 /** A place in the gazetteer, used to derive a context when nothing better exists. */
 export interface GazetteerPlace {
   name: string;
@@ -57,7 +74,7 @@ export interface ResolvedStation {
   positionVerified?: string;
 }
 
-export type Resolver = (station: Station) => ResolvedStation;
+export type Resolver = (station: Station | StationRef) => ResolvedStation;
 
 /**
  * Corrections keyed by provider station ID. IDs are opaque strings —

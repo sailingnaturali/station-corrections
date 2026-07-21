@@ -90,6 +90,11 @@ const regProblems: string[] = [
   ...validateRegistry(reg, { corrections }),
 ];
 const fromRegistry: Resolver = createResolver({ corrections, gazetteer, registry: reg });
+// The registry's headline call: id alone, no name or position. This shipped
+// broken in 1.4.0 - Resolver required a full Station, so the README's own
+// example did not compile. Exercised here so it cannot regress again.
+const byIdAlone: ResolvedStation = fromRegistry({ id: "chs-dodd-narrows" });
+const bundledById: ResolvedStation = resolve({ id: "chs-dodd-narrows" });
 
 // validatePositions and coverageWarnings are widened to accept either file -
 // exercise both shapes, not just Corrections.
@@ -100,7 +105,7 @@ const registryCoverage: string[] = coverageWarnings(reg);
 // Reference every binding so noUnusedLocals stays on for real mistakes.
 export const surface = {
   resolved, name, context, cities, aliases, corrected, lat, verified,
-  own, bare, noArgs, problems, limit, cleaned, slug, reread, movedIds, unchanged,
+  own, bare, noArgs, byIdAlone, bundledById, problems, limit, cleaned, slug, reread, movedIds, unchanged,
   reg, entry, regProblems, fromRegistry,
   registryPositionProblems, correctionsCoverage, registryCoverage,
 };
