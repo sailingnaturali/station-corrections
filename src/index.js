@@ -12,6 +12,7 @@ export {
 export { cleanName } from "./clean.js";
 export { toSlug } from "./slug.js";
 export { buildLock, readLock, diffLock } from "./lock.js";
+export { loadRegistry, validateRegistry } from "./registry.js";
 
 /**
  * Build a resolver over the corrections and gazetteer this package ships.

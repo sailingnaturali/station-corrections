@@ -143,3 +143,30 @@ export function readLock(json: string): Lock;
 
 /** Compare a lock against the current station list. */
 export function diffLock(lock: Lock, stations: Station[], options: { resolve: Resolver }): LockDiff;
+
+/** A station whose identity this package owns, rather than corrects. */
+export interface RegistryStation {
+  name: string;
+  position: [number, number];
+  provider: string;
+  providerId: string;
+  context?: string;
+  slug?: string;
+  cities?: string[];
+  aliases?: string[];
+}
+
+/** Registry entries keyed by stable station id, e.g. `chs-dodd-narrows`. */
+export type Registry = Map<string, RegistryStation>;
+
+/** Parse a registry YAML document into a map keyed by station id. */
+export function loadRegistry(yamlText: string): Registry;
+
+/**
+ * Check a registry for the mistakes contributors make. Pass `corrections` to
+ * enable the cross-file rules (no station in both files, no slug collisions).
+ */
+export function validateRegistry(
+  registry: Registry,
+  options?: { corrections?: Corrections },
+): string[];

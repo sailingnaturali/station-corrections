@@ -21,12 +21,16 @@ import {
   readLock,
   diffLock,
   MAX_CORRECTION_KM,
+  loadRegistry,
+  validateRegistry,
   type Station,
   type ResolvedStation,
   type Resolver,
   type Corrections,
   type GazetteerPlace,
   type Lock,
+  type Registry,
+  type RegistryStation,
 } from "../index.js";
 import { validatePositions } from "../validate-positions.js";
 
@@ -78,8 +82,16 @@ const diff = diffLock(reread, [station], { resolve });
 const movedIds: string[] = diff.moved.map((m) => m.id);
 const unchanged: string[] = diff.unchanged;
 
+const reg: Registry = loadRegistry("chs-x:\n  name: X\n");
+const entry: RegistryStation | undefined = reg.get("chs-x");
+const regProblems: string[] = [
+  ...validateRegistry(reg),
+  ...validateRegistry(reg, { corrections }),
+];
+
 // Reference every binding so noUnusedLocals stays on for real mistakes.
 export const surface = {
   resolved, name, context, cities, aliases, corrected, lat, verified,
   own, bare, noArgs, problems, limit, cleaned, slug, reread, movedIds, unchanged,
+  reg, entry, regProblems,
 };
