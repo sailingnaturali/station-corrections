@@ -10,8 +10,16 @@
     "type": "git",
     "url": "git+https://github.com/sailingnaturali/station-corrections.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "tides",
+    "currents",
+    "stations",
+    "noaa",
+    "chs",
+    "geocoding",
+    "corrections"
+  ],
+  "author": "Sailing Naturali",
   "license": "MIT",
   "type": "module",
   "bugs": {
@@ -25,5 +33,15 @@
   },
   "bin": {
     "station-corrections": "bin/station-corrections.mjs"
-  }
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "data",
+    "!**/*.test.js",
+    "!**/*.test.mjs"
+  ]
 }
