@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,13 +9,13 @@ import { fileURLToPath } from "node:url";
 const bin = fileURLToPath(new URL("./station-corrections.mjs", import.meta.url));
 const lockPath = fileURLToPath(new URL("../data/audit.lock.json", import.meta.url));
 
+// spawnSync (not execFileSync) because it returns stdout/stderr on *every*
+// exit code - execFileSync only surfaces stderr when the process throws
+// (non-zero exit), so a passing command's stderr - e.g. "validate"'s
+// coverage notes on a clean exit 0 - would otherwise come back empty.
 function run(args) {
-  try {
-    const stdout = execFileSync("node", [bin, ...args], { encoding: "utf8" });
-    return { status: 0, stdout, stderr: "" };
-  } catch (err) {
-    return { status: err.status, stdout: err.stdout ?? "", stderr: err.stderr ?? "" };
-  }
+  const { status, stdout, stderr } = spawnSync("node", [bin, ...args], { encoding: "utf8" });
+  return { status, stdout, stderr };
 }
 
 function runAudit(path) {
@@ -209,6 +209,32 @@ test("a station that moves from clear to ashore is re-audited, not trusted from 
       assert.match(audit.stdout, /test\/water/);
       assert.match(audit.stdout, /m inland/);
       assert.match(audit.stdout, /1 of 1 ashore/);
+    });
+  });
+});
+
+test("validate checks the registry and reports coverage gaps as notes", () => {
+  const result = run(["validate"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stderr, /corrections file is valid/);
+  // The three northern gates cannot be checked against the clipped coastline.
+  assert.match(result.stderr, /outside coastline coverage/);
+});
+
+// Weynton Passage sits north of the clipped coastline (see coverageWarnings),
+// so audit cannot tell water from land there - it must say "not checked",
+// not silently report a "clear" it never computed.
+const OUT_OF_COVERAGE_STATION = { id: "test/weynton", name: "WEYNTON STATION", latitude: 50.6033, longitude: -126.8117 };
+
+test("audit reports stations outside coastline coverage as not checked, not cleared", () => {
+  withRealLockBackup(() => {
+    withFixtureStations([WATER_STATION, OUT_OF_COVERAGE_STATION], (path) => {
+      rmSync(lockPath, { force: true });
+      const { status, stdout } = run(["audit", path]);
+      assert.equal(status, 0);
+      // The in-coverage water station is clear and not counted as ashore.
+      assert.match(stdout, /0 of 2 ashore/);
+      assert.match(stdout, /1 station.* outside coastline coverage - not checked/i);
     });
   });
 });

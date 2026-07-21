@@ -56,10 +56,12 @@ CLI's `validate` command does, imports this subpath directly.
 
 Every lookup resolves highest-first:
 
-1. **Curated override** — anything in `data/corrections.yaml` wins outright.
-2. **Derived fallback** — nearest place from the bundled gazetteer, so context is never empty
-   and new coverage needs no hand-work. Flagged `derived: true`.
-3. **Source data** — the provider's own name, cleaned.
+1. **Registry** — `data/registry.yaml`. Stations whose identity this package owns rather than
+   corrects, because there is no upstream to correct. Resolves from an id alone.
+2. **Curated override** — anything in `data/corrections.yaml` wins over provider data.
+3. **Derived fallback** — nearest place from the bundled gazetteer, so context is never empty.
+   Flagged `derived: true`.
+4. **Source data** — the provider's own name, cleaned.
 
 Cleaning only re-cases names that are **entirely** upper case. Mixed-case names were typed by a
 human and may carry capitalisation we cannot reconstruct — `Spee-Bi-Dah`, `La Push`, `McArthur`
@@ -99,6 +101,33 @@ context containing the full station name as a whole-word phrase, so `Everett Har
 `Port of Everett` are refused — while `Port Townsend` / `Port Angeles`, different places sharing
 a word, passes.
 
+## The registry
+
+Some stations have no upstream record to correct. CHS tidal-current gates are the case this was
+built for: the fitting pipeline emits a hand-written label and no position at all, so there is
+nothing to overlay onto — the record here *is* the station.
+
+```yaml
+chs-dodd-narrows:
+  name: Dodd Narrows
+  context: Nanaimo
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: 63aef1866a2b9417c035030f
+```
+
+`providerId` stays separate from the key: `chs-dodd-narrows` is stable and safe in a URL, while
+`63aef186…` is an opaque API handle. A station may not appear in both files — two sources of
+authority for one station is the bug, not a feature — and slugs must be unique across both,
+because URLs share one namespace.
+
+A corrected `position` is checked for plausible distance from what the provider published; a
+registry position is not, because it *is* the published value. That absence is deliberate.
+
+**Coverage.** The bundled coastline is clipped to the Salish Sea, so positions north of it —
+Blackney Passage, Johnstone Strait, Weynton Passage — cannot be confirmed as being in water.
+`validate` reports these as notes rather than passing them silently.
+
 ## Finding stations that are on land
 
 ```bash
@@ -121,6 +150,10 @@ That threshold is not arbitrary. Two categories read as inland and are perfectly
 A genuinely misplaced station is hundreds of metres out. 200 m sits in the gap. Known-good cases
 get a `positionVerified` reason and the audit stops reporting them — an audit that never reaches
 zero is one nobody reads.
+
+A station outside the clipped coastline (see Coverage, above) is not in the ashore count either
+way: there is no land data to check it against, so it is not silently read as clear. `audit`
+prints a separate `N station(s) outside coastline coverage - not checked` line for these.
 
 ## Pinning results with a lock
 
