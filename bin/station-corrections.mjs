@@ -5,11 +5,16 @@ import { auditStations, classify, REPORT_THRESHOLD_M } from "../src/audit.js";
 import { buildLock, readLock, diffLock } from "../src/lock.js";
 import { createBundledResolver } from "../src/index.js";
 import { loadCorrections, validateCorrections, validateAgainstStations } from "../src/corrections.js";
-import { validatePositions } from "../src/validate-positions.js";
+import { validatePositions, coverageWarnings } from "../src/validate-positions.js";
+import { loadRegistry, validateRegistry } from "../src/registry.js";
+import { isWithinCoverage } from "../src/coastline.js";
 import { fileURLToPath } from "node:url";
 
 const corrections = loadCorrections(
   readFileSync(fileURLToPath(new URL("../data/corrections.yaml", import.meta.url)), "utf8"),
+);
+const registry = loadRegistry(
+  readFileSync(fileURLToPath(new URL("../data/registry.yaml", import.meta.url)), "utf8"),
 );
 
 const coastlinePath = fileURLToPath(new URL("../data/coastline.geojson", import.meta.url));
@@ -21,7 +26,7 @@ function coastlineFingerprint() {
 }
 
 /** Read, parse and shape-check a stations file, or print a clear message and exit 1. Shared by every command that takes a stations.json argument. */
-function loadStations(command, stationsPath) {
+function readStationsFile(command, stationsPath) {
   if (!stationsPath) {
     console.error(`usage: station-corrections ${command} <stations.json>`);
     process.exit(1);
@@ -57,22 +62,30 @@ if (command === "validate") {
   // against the position it is correcting - the one check the corrections
   // file alone cannot express, because it does not record where the provider
   // said the station was.
-  const stations = stationsPath ? loadStations("validate", stationsPath) : null;
+  const stations = stationsPath ? readStationsFile("validate", stationsPath) : null;
   const problems = [
     ...validateCorrections(corrections),
     ...validatePositions(corrections),
+    ...validateRegistry(registry, { corrections }),
+    ...validatePositions(registry),
     ...(stations ? validateAgainstStations(corrections, stations) : []),
   ];
   for (const problem of problems) console.error(problem);
+
+  // Not failures: a position outside the clipped coastline is unconfirmable,
+  // not wrong. Printed so nobody reads a clean run as "all positions checked".
+  for (const warning of [...coverageWarnings(corrections), ...coverageWarnings(registry)]) {
+    console.error(`note: ${warning}`);
+  }
   if (!stations) {
     console.error("note: no stations file given - skipping the distance-from-published check");
   }
-  console.error(problems.length ? `\n${problems.length} problem(s)` : "corrections file is valid");
+  console.error(problems.length ? `\n${problems.length} problem(s)` : "corrections and registry files are valid");
   process.exit(problems.length ? 1 : 0);
 }
 
 if (command === "audit") {
-  const stations = loadStations("audit", stationsPath);
+  const stations = readStationsFile("audit", stationsPath);
   const rawResolve = createBundledResolver();
   // Memoized so the lockValid branch below - which resolves each station
   // once inside diffLock and again in its own follow-up loop - does the
@@ -100,13 +113,34 @@ if (command === "audit") {
   }
   const lockValid = lock && lock.coastline === coastlineFingerprint() && lock.thresholdM === REPORT_THRESHOLD_M;
 
+  // Partition out-of-coverage stations first, before the cached/checked
+  // split below. auditStations calls inlandMetres directly, which returns 0
+  // outside the clipped coastline - so a station out there was never really
+  // evaluated for ashore-ness. It must land in exactly one summary bucket
+  // (not checked), never also in cached or checked - and the "X of Y ashore"
+  // line's denominator must only ever be stations that were actually
+  // evaluated, or "Y - X" silently re-absorbs an unverifiable station as
+  // "clear". That is the same gap classify() closed (see src/audit.js) for
+  // per-station verdicts; this is the CLI's own summary making the same
+  // mistake at the aggregate level.
+  const inCoverage = [];
+  let outsideCoverage = 0;
+  for (const station of stations) {
+    const resolved = resolve(station);
+    if (isWithinCoverage(resolved.latitude, resolved.longitude)) {
+      inCoverage.push(station);
+    } else {
+      outsideCoverage++;
+    }
+  }
+
   let findings;
   let cached = 0;
   let checked;
   if (lockValid) {
-    const unchanged = new Set(diffLock(lock, stations, { resolve }).unchanged);
+    const unchanged = new Set(diffLock(lock, inCoverage, { resolve }).unchanged);
     const toCheck = [];
-    for (const station of stations) {
+    for (const station of inCoverage) {
       const resolved = resolve(station);
       if (unchanged.has(resolved.id) && lock.stations[resolved.id].verdict !== "ashore") {
         cached++;
@@ -119,8 +153,8 @@ if (command === "audit") {
     findings = auditStations(toCheck, { resolve });
     checked = toCheck.length;
   } else {
-    findings = auditStations(stations, { resolve });
-    checked = stations.length;
+    findings = auditStations(inCoverage, { resolve });
+    checked = inCoverage.length;
   }
 
   for (const finding of findings) {
@@ -131,13 +165,18 @@ if (command === "audit") {
         : "  nearest water: none found within range - needs a human look",
     );
   }
+
+  // cached + checked + outsideCoverage is a clean partition of stations.length
+  // - every station lands in exactly one bucket - and the ashore line below
+  // is only ever a fraction of cached + checked, never of the full input.
   console.log(`\n${cached} cached, ${checked} checked`);
-  console.log(`${findings.length} of ${stations.length} ashore`);
+  console.log(`${findings.length} of ${cached + checked} ashore`);
+  console.log(`${outsideCoverage} station(s) outside coastline coverage - not checked`);
   process.exit(0);
 }
 
 if (command === "lock") {
-  const stations = loadStations("lock", stationsPath);
+  const stations = readStationsFile("lock", stationsPath);
   const resolve = createBundledResolver();
   const lock = buildLock(stations, { resolve, classify, coastlineFingerprint: coastlineFingerprint(), thresholdM: REPORT_THRESHOLD_M });
   writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
@@ -146,7 +185,7 @@ if (command === "lock") {
 }
 
 if (command === "check") {
-  const stations = loadStations("check", stationsPath);
+  const stations = readStationsFile("check", stationsPath);
   const resolve = createBundledResolver();
 
   let lock;

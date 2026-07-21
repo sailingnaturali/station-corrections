@@ -7,8 +7,8 @@
   "scripts": {
     "test": "node --test && npm run test:types",
     "test:types": "tsc -p tsconfig.json",
-    "build:data": "node scripts/build-corrections-json.mjs",
-    "check:data": "npm run build:data && git diff --exit-code data/corrections.json"
+    "build:data": "node scripts/build-data.mjs",
+    "check:data": "npm run build:data && git diff --exit-code data/corrections.json data/registry.json"
   },
   "repository": {
     "type": "git",

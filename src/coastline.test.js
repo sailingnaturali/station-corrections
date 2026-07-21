@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { isOnLand, inlandMetres, nearestWater } from "./coastline.js";
+import { isOnLand, inlandMetres, nearestWater, coverageBounds, isWithinCoverage } from "./coastline.js";
 
 test("the bundled coastline has not been generalised down to a handful of shapes", () => {
   // The 7 golden points below only prove those exact coordinates. A coarser
@@ -76,4 +76,26 @@ test("nearest water from an inland point is in water and close by", () => {
 test("nearest water from a point already in water is itself", () => {
   const found = nearestWater(48.9, -123.2);
   assert.equal(found.metres, 0);
+});
+
+test("coverage bounds are derived from the coastline data", () => {
+  const b = coverageBounds();
+  // scripts/build-coastline.mjs clips to [-125.5, 47.0, -122.0, 50.5].
+  assert.ok(Math.abs(b.minLat - 47.0) < 0.01, `minLat was ${b.minLat}`);
+  assert.ok(Math.abs(b.maxLat - 50.5) < 0.01, `maxLat was ${b.maxLat}`);
+  assert.ok(Math.abs(b.minLon - -125.5) < 0.01, `minLon was ${b.minLon}`);
+  assert.ok(Math.abs(b.maxLon - -122.0) < 0.01, `maxLon was ${b.maxLon}`);
+});
+
+test("positions outside the clip are not covered", () => {
+  // Weynton Passage - a real CHS gate north of the Salish Sea clip.
+  assert.equal(isWithinCoverage(50.6033, -126.8117), false);
+  // Dodd Narrows - inside.
+  assert.equal(isWithinCoverage(49.1344, -123.8171), true);
+});
+
+test("an uncovered position is not silently reported as water", () => {
+  // This is the bug: isOnLand cannot tell "no land here" from "no data here".
+  assert.equal(isOnLand(50.6033, -126.8117), false);
+  assert.equal(isWithinCoverage(50.6033, -126.8117), false);
 });

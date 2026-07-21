@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadCorrections } from "./corrections.js";
-import { validatePositions } from "./validate-positions.js";
+import { validatePositions, coverageWarnings } from "./validate-positions.js";
 
 test("flags a corrected position that is still on land", () => {
   // Mount Vernon - kilometres from salt water in every direction.
@@ -41,4 +41,27 @@ noaa/1:
 `);
   assert.doesNotThrow(() => validatePositions(map));
   assert.deepEqual(validatePositions(map), []);
+});
+
+test("a position outside coastline coverage is reported, not passed", () => {
+  const map = loadCorrections(`
+noaa/1:
+  position: [50.6033, -126.8117]
+  reason: north of the clip
+`);
+  // Not a failure - validatePositions only reports positions on land.
+  assert.deepEqual(validatePositions(map), []);
+  const warnings = coverageWarnings(map);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /noaa\/1/);
+  assert.match(warnings[0], /outside/);
+});
+
+test("a covered position produces no coverage warning", () => {
+  const map = loadCorrections(`
+noaa/1:
+  position: [48.9, -123.2]
+  reason: mid strait
+`);
+  assert.deepEqual(coverageWarnings(map), []);
 });

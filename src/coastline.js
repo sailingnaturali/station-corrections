@@ -13,6 +13,48 @@ export function isOnLand(lat, lon) {
   return coastline.features.some((feature) => booleanPointInPolygon(at, feature));
 }
 
+let bounds = null;
+
+/**
+ * The rectangle the bundled coastline actually covers.
+ *
+ * Derived from the data rather than hardcoded, so rebuilding the coastline
+ * with a different clip (scripts/build-coastline.mjs) updates this for free.
+ * Computed once on first use: callers that never ask about coverage do not
+ * pay for the walk over every coordinate.
+ */
+export function coverageBounds() {
+  if (bounds) return bounds;
+  let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+  const walk = (coords) => {
+    if (typeof coords[0] === "number") {
+      const [lon, lat] = coords;
+      if (lon < minLon) minLon = lon;
+      if (lon > maxLon) maxLon = lon;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+      return;
+    }
+    for (const part of coords) walk(part);
+  };
+  for (const feature of coastline.features) walk(feature.geometry.coordinates);
+  bounds = { minLat, maxLat, minLon, maxLon };
+  return bounds;
+}
+
+/**
+ * Is this position somewhere the coastline can actually answer for?
+ *
+ * Outside the clip there are no land polygons, so `isOnLand` returns false
+ * and `inlandMetres` returns 0 - indistinguishable from verified open water.
+ * Every caller that treats "not on land" as "in water" must check this first,
+ * or it is reporting a result it never computed.
+ */
+export function isWithinCoverage(lat, lon) {
+  const b = coverageBounds();
+  return lat >= b.minLat && lat <= b.maxLat && lon >= b.minLon && lon <= b.maxLon;
+}
+
 const EARTH_M = 6_371_000;
 
 function metresBetween(aLat, aLon, bLat, bLon) {

@@ -413,12 +413,47 @@ chs-x:
 test("an empty registry is valid", () => {
   assert.deepEqual(validateRegistry(loadRegistry("")), []);
 });
+
+test("a station declared in both files is rejected", () => {
+  const registry = loadRegistry(`
+chs-dodd-narrows:
+  name: Dodd Narrows
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: abc
+`);
+  const corrections = loadCorrections("chs-dodd-narrows:\n  name: Dodd\n");
+  const problems = validateRegistry(registry, { corrections });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /both the registry and corrections/);
+});
+
+test("a slug colliding across files is rejected", () => {
+  const registry = loadRegistry(`
+chs-dodd-narrows:
+  name: Dodd Narrows
+  slug: nanaimo
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: abc
+`);
+  const corrections = loadCorrections("noaa/1:\n  name: Nanaimo\n  slug: nanaimo\n");
+  const problems = validateRegistry(registry, { corrections });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /collides with chs-dodd-narrows/);
+});
+
+test("corrections with no overlap produce no cross-file problems", () => {
+  const registry = loadRegistry(VALID);
+  const corrections = loadCorrections("noaa/1:\n  name: Everett\n  slug: everett\n");
+  assert.deepEqual(validateRegistry(registry, { corrections }), []);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `node --test src/registry.test.js`
-Expected: FAIL — cannot find module `./registry.js`
+Expected: FAIL — cannot find module `./registry.js`. Every test above must be red before any implementation exists, the cross-file ones included.
 
 - [ ] **Step 3: Write the implementation**
 
@@ -533,7 +568,7 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `node --test src/registry.test.js`
-Expected: PASS, 9 tests
+Expected: PASS, 12 tests — including the three cross-file rules
 
 - [ ] **Step 5: Commit**
 
@@ -544,70 +579,7 @@ git commit -m "Add the registry: stations whose identity this package owns"
 
 ---
 
-### Task 4: Cross-file validation
-
-**Files:**
-- Test: `src/registry.test.js`
-
-**Interfaces:**
-- Consumes: `validateRegistry(registry, { corrections })` from Task 3
-
-- [ ] **Step 1: Write the failing tests**
-
-Append to `src/registry.test.js`:
-
-```js
-test("a station declared in both files is rejected", () => {
-  const registry = loadRegistry(`
-chs-dodd-narrows:
-  name: Dodd Narrows
-  position: [49.1344, -123.8171]
-  provider: chs
-  providerId: abc
-`);
-  const corrections = loadCorrections("chs-dodd-narrows:\n  name: Dodd\n");
-  const problems = validateRegistry(registry, { corrections });
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /both the registry and corrections/);
-});
-
-test("a slug colliding across files is rejected", () => {
-  const registry = loadRegistry(`
-chs-dodd-narrows:
-  name: Dodd Narrows
-  slug: nanaimo
-  position: [49.1344, -123.8171]
-  provider: chs
-  providerId: abc
-`);
-  const corrections = loadCorrections("noaa/1:\n  name: Nanaimo\n  slug: nanaimo\n");
-  const problems = validateRegistry(registry, { corrections });
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /collides with chs-dodd-narrows/);
-});
-
-test("corrections with no overlap produce no cross-file problems", () => {
-  const registry = loadRegistry(VALID);
-  const corrections = loadCorrections("noaa/1:\n  name: Everett\n  slug: everett\n");
-  assert.deepEqual(validateRegistry(registry, { corrections }), []);
-});
-```
-
-- [ ] **Step 2: Run tests**
-
-Run: `node --test src/registry.test.js`
-Expected: PASS — Task 3's implementation already covers these; this task proves it. If any fail, fix `validateRegistry` rather than the test.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/registry.test.js
-git commit -m "Cover the cross-file registry rules"
-```
-
----
-
-### Task 5: Registry-aware resolution
+### Task 4: Registry-aware resolution
 
 Precedence becomes registry → corrections → provider data. A registry station resolves fully from `{ id }` alone, which is what CHS needs: the pipeline's output carries no position.
 
@@ -746,7 +718,7 @@ git commit -m "Resolve registry stations above the corrections overlay"
 
 ---
 
-### Task 6: Generalize the build step
+### Task 5: Generalize the build step
 
 **Files:**
 - Create: `scripts/build-data.mjs`
@@ -848,7 +820,7 @@ git commit -m "Generalize the data build to compile both YAML sources"
 
 ---
 
-### Task 7: Seed the 19 CHS stations
+### Task 6: Seed the 19 CHS stations
 
 Positions, provider ids and names are taken verbatim from `currents-vault/passes/*.md` frontmatter, cross-checked against `chs-constituents/stations/salish-sea.json` (all 19 uuids agree). Contexts are drawn from the vault's own prose. Boundary Pass is excluded — it is `provider: noaa` / `PUG1717`, not a CHS station, and giving NOAA a registry key is a Phase 3 decision.
 
@@ -857,7 +829,7 @@ Positions, provider ids and names are taken verbatim from `currents-vault/passes
 - Test: `src/seed-registry.test.js`
 
 **Interfaces:**
-- Consumes: `loadRegistry`, `validateRegistry`, `createResolver` from Tasks 3 and 5
+- Consumes: `loadRegistry`, `validateRegistry`, `createResolver` from Tasks 3 and 4
 
 - [ ] **Step 1: Write the registry**
 
@@ -1135,7 +1107,7 @@ git commit -m "Seed the registry with the 19 CHS tidal-current gates"
 
 ---
 
-### Task 8: Public API and types
+### Task 7: Public API and types
 
 Exports and declarations must land together: `src/public-surface.test.js` fails if an export has no declaration.
 
@@ -1285,7 +1257,7 @@ git commit -m "Export the registry API and resolve registry stations from the bu
 
 ---
 
-### Task 9: CLI, CI and README
+### Task 8: CLI, CI and README
 
 **Files:**
 - Modify: `bin/station-corrections.mjs`, `README.md`

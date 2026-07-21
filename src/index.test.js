@@ -20,6 +20,24 @@ test("createBundledResolver resolves a known station regardless of cwd", async (
   }
 });
 
+test("the bundled resolver resolves a registry station from its id", async () => {
+  const { createBundledResolver } = await import("./index.js");
+  const resolve = createBundledResolver();
+  const r = resolve({ id: "chs-dodd-narrows" });
+  assert.equal(r.name, "Dodd Narrows");
+  assert.equal(r.context, "Nanaimo");
+  assert.equal(r.latitude, 49.1344);
+  assert.equal(r.corrected, false);
+});
+
+test("the bundled resolver still resolves an overlay station", async () => {
+  const { createBundledResolver } = await import("./index.js");
+  const resolve = createBundledResolver();
+  const r = resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
+  assert.equal(r.name, "Everett");
+  assert.equal(r.context, "Port Gardner");
+});
+
 test("index.js never references the coastline module", () => {
   // Importing the library must not pull in the 3.6 MB coastline (only
   // audit-related code needs it). A static check on the source is enough:

@@ -1,6 +1,7 @@
 import { createResolver } from "./resolve.js";
 import corrections from "../data/corrections.json" with { type: "json" };
 import gazetteer from "../data/gazetteer.json" with { type: "json" };
+import registry from "../data/registry.json" with { type: "json" };
 
 export { createResolver } from "./resolve.js";
 export {
@@ -12,6 +13,7 @@ export {
 export { cleanName } from "./clean.js";
 export { toSlug } from "./slug.js";
 export { buildLock, readLock, diffLock } from "./lock.js";
+export { loadRegistry, validateRegistry } from "./registry.js";
 
 /**
  * Build a resolver over the corrections and gazetteer this package ships.
@@ -25,12 +27,16 @@ export { buildLock, readLock, diffLock } from "./lock.js";
  *
  * `data/corrections.json` is compiled from the YAML for exactly this reason —
  * a browser cannot read a file off disk, and every runtime can import JSON.
- * See `scripts/build-corrections-json.mjs`.
+ * See `scripts/build-data.mjs`.
  *
- * Both files are a few KB and load eagerly with this module. The data kept
+ * All three files are a few KB and load eagerly with this module. The data kept
  * deliberately out of reach is the 3.6 MB coastline, which lives behind
  * ./audit.js and ./validate-positions.js and is never imported from here.
  */
 export function createBundledResolver() {
-  return createResolver({ corrections: new Map(Object.entries(corrections)), gazetteer });
+  return createResolver({
+    corrections: new Map(Object.entries(corrections)),
+    registry: new Map(Object.entries(registry)),
+    gazetteer,
+  });
 }
