@@ -88,10 +88,11 @@ const regProblems: string[] = [
   ...validateRegistry(reg),
   ...validateRegistry(reg, { corrections }),
 ];
+const fromRegistry: Resolver = createResolver({ corrections, gazetteer, registry: reg });
 
 // Reference every binding so noUnusedLocals stays on for real mistakes.
 export const surface = {
   resolved, name, context, cities, aliases, corrected, lat, verified,
   own, bare, noArgs, problems, limit, cleaned, slug, reread, movedIds, unchanged,
-  reg, entry, regProblems,
+  reg, entry, regProblems, fromRegistry,
 };

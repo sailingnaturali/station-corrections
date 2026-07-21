@@ -29,7 +29,7 @@ export { loadRegistry, validateRegistry } from "./registry.js";
  * a browser cannot read a file off disk, and every runtime can import JSON.
  * See `scripts/build-data.mjs`.
  *
- * Both files are a few KB and load eagerly with this module. The data kept
+ * All three files are a few KB and load eagerly with this module. The data kept
  * deliberately out of reach is the 3.6 MB coastline, which lives behind
  * ./audit.js and ./validate-positions.js and is never imported from here.
  */
