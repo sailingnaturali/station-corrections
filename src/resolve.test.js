@@ -71,3 +71,12 @@ test("aliases always include the name and the slug", () => {
   assert.ok(r.aliases.includes("cherry point"));
   assert.ok(r.aliases.includes("cherry-point"));
 });
+
+test("does not crash on a non-string alias in the corrections map", () => {
+  // validateCorrections rejects this in the shipped corrections.yaml, but
+  // createResolver is also usable directly with a hand-built Map that never
+  // went through validation.
+  const badCorrections = new Map([["noaa/9", { aliases: [123] }]]);
+  const badResolve = createResolver({ corrections: badCorrections, gazetteer: [] });
+  assert.doesNotThrow(() => badResolve({ id: "noaa/9", name: "Test", latitude: 48, longitude: -122 }));
+});

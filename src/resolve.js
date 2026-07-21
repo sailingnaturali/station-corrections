@@ -46,7 +46,7 @@ export function createResolver({ corrections = new Map(), gazetteer = [] } = {})
     const aliases = new Set([
       name.toLowerCase(),
       slug,
-      ...(override.aliases ?? []).map((a) => a.toLowerCase()),
+      ...(override.aliases ?? []).filter((a) => typeof a === "string").map((a) => a.toLowerCase()),
     ]);
 
     return {
