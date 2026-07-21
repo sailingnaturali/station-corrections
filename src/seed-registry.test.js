@@ -18,11 +18,21 @@ test("the shipped registry is valid against the shipped corrections", () => {
   assert.deepEqual(validateRegistry(registry, { corrections }), []);
 });
 
-test("every CHS gate in the fitting pipeline is present", () => {
-  assert.equal(registry.size, 19);
+// The one non-CHS entry: a NOAA current station carried here because
+// currents-vault, which curates the same 20 gates, is dropping station
+// identity in favour of this registry. Named so a station going missing or a
+// provider silently changing (either direction) still fails loudly.
+const NOAA_GATES = ["noaa-boundary-pass"];
+
+test("every CHS gate in the fitting pipeline is present, plus the one NOAA gate", () => {
+  assert.equal(registry.size, 19 + NOAA_GATES.length);
   for (const [id, record] of registry) {
-    assert.ok(id.startsWith("chs-"), `${id} is not a chs key`);
-    assert.equal(record.provider, "chs");
+    if (NOAA_GATES.includes(id)) {
+      assert.equal(record.provider, "noaa", `${id} is not a noaa provider`);
+    } else {
+      assert.ok(id.startsWith("chs-"), `${id} is not a chs key`);
+      assert.equal(record.provider, "chs");
+    }
   }
 });
 

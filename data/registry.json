@@ -221,5 +221,16 @@
     ],
     "provider": "chs",
     "providerId": "63af005f6a2b9417c0353158"
+  },
+  "noaa-boundary-pass": {
+    "name": "Boundary Pass",
+    "context": "Saturna & Patos Islands",
+    "position": [
+      48.6912,
+      -123.245
+    ],
+    "provider": "noaa",
+    "providerId": "PUG1717",
+    "providerBin": 35
   }
 }

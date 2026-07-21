@@ -88,8 +88,10 @@ const diff = diffLock(reread, [station], { resolve });
 const movedIds: string[] = diff.moved.map((m) => m.id);
 const unchanged: string[] = diff.unchanged;
 
-const reg: Registry = loadRegistry("chs-x:\n  name: X\n");
+const reg: Registry = loadRegistry("chs-x:\n  name: X\nnoaa-x:\n  name: Y\n  providerBin: 35\n");
 const entry: RegistryStation | undefined = reg.get("chs-x");
+// Optional, so it must not be assignable to a bare number.
+const bin: number | undefined = reg.get("noaa-x")?.providerBin;
 const regProblems: string[] = [
   ...validateRegistry(reg),
   ...validateRegistry(reg, { corrections }),
@@ -115,7 +117,7 @@ const slugProblems: string[] = checkSlugs(rereadSlugsLock, corrections, reg);
 export const surface = {
   resolved, name, context, cities, aliases, corrected, lat, verified, formerSlugs,
   own, bare, noArgs, byIdAlone, bundledById, problems, limit, cleaned, slug, reread, movedIds, unchanged,
-  reg, entry, regProblems, fromRegistry,
+  reg, entry, bin, regProblems, fromRegistry,
   registryPositionProblems, correctionsCoverage, registryCoverage,
   slugsLock, rereadSlugsLock, slugProblems,
 };

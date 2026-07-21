@@ -267,3 +267,69 @@ chs-b:
   assert.ok(problems.some((p) => /chs-a: name is required/.test(p)));
   assert.ok(!problems.some((p) => /duplicate slug/.test(p)));
 });
+
+test("accepts a providerBin as a positive integer", () => {
+  const problems = validateRegistry(loadRegistry(`
+noaa-boundary-pass:
+  name: Boundary Pass
+  context: Saturna & Patos Islands
+  position: [48.6912, -123.245]
+  provider: noaa
+  providerId: PUG1717
+  providerBin: 35
+`));
+  assert.deepEqual(problems, []);
+});
+
+test("rejects a non-number providerBin", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-x:
+  name: X
+  position: [49, -123]
+  provider: chs
+  providerId: abc
+  providerBin: "deep"
+`));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /providerBin must be a number/);
+});
+
+test("rejects a fractional providerBin", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-x:
+  name: X
+  position: [49, -123]
+  provider: chs
+  providerId: abc
+  providerBin: 2.5
+`));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /providerBin must be a positive integer/);
+});
+
+test("rejects a negative providerBin", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-x:
+  name: X
+  position: [49, -123]
+  provider: chs
+  providerId: abc
+  providerBin: -1
+`));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /providerBin must be a positive integer/);
+});
+
+test("rejects a zero providerBin", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-x:
+  name: X
+  position: [49, -123]
+  provider: chs
+  providerId: abc
+  providerBin: 0
+`));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /providerBin must be a positive integer/);
+});
+
