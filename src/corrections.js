@@ -56,6 +56,15 @@ export function validateCorrections(map) {
       }
     }
 
+    if (record.positionVerified !== undefined) {
+      if (record.position) {
+        problems.push(`${id}: position and positionVerified cannot both be set - a position cannot be both wrong and confirmed right`);
+      }
+      if (typeof record.positionVerified !== "string" || record.positionVerified.trim() === "") {
+        problems.push(`${id}: positionVerified must be a non-empty string`);
+      }
+    }
+
     if (record.name && record.context && namesOverlap(record.name, record.context)) {
       problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
     }

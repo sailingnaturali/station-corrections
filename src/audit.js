@@ -25,6 +25,7 @@ export function auditStations(stations, { resolve, thresholdM = REPORT_THRESHOLD
   const findings = [];
   for (const station of stations) {
     const resolved = resolve(station);
+    if (resolved.positionVerified) continue;
     const metresInland = inlandMetres(resolved.latitude, resolved.longitude);
     if (metresInland <= thresholdM) continue;
 

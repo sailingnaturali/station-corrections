@@ -128,3 +128,30 @@ noaa/1:
 `);
   assert.match(validateCorrections(map)[0], /latitude/);
 });
+
+test("accepts a verified position with a stated reason", () => {
+  const map = loadCorrections(`
+noaa/9442396:
+  positionVerified: "up the Quillayute River; the coastline maps ocean only"
+`);
+  assert.deepEqual(validateCorrections(map), []);
+});
+
+test("rejects a station that is both corrected and verified", () => {
+  // A position cannot be both wrong and confirmed right.
+  const map = loadCorrections(`
+noaa/1:
+  position: [48.5, -122.6]
+  reason: inland
+  positionVerified: "actually it is fine"
+`);
+  assert.match(validateCorrections(map)[0], /both/);
+});
+
+test("rejects an empty verification reason", () => {
+  const map = loadCorrections(`
+noaa/1:
+  positionVerified: ""
+`);
+  assert.match(validateCorrections(map)[0], /positionVerified/);
+});

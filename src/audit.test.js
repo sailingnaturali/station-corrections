@@ -76,3 +76,17 @@ test("reports rather than throws when no water is found within range", () => {
   assert.equal(findings[0].metresInland, Infinity);
   assert.equal(findings[0].suggestion, null);
 });
+
+test("does not report a station whose position is verified correct", () => {
+  const verified = createResolver({
+    corrections: loadCorrections(`
+noaa/9442396:
+  positionVerified: "up the Quillayute River; the coastline maps ocean only"
+`),
+  });
+  const findings = auditStations(
+    [{ id: "noaa/9442396", name: "La Push", latitude: 47.91284, longitude: -124.63574 }],
+    { resolve: verified },
+  );
+  assert.deepEqual(findings, []);
+});

@@ -57,6 +57,7 @@ export function createResolver({ corrections = new Map(), gazetteer = [] } = {})
       longitude: position[1],
       corrected: Boolean(override.position),
       derived,
+      positionVerified: override.positionVerified,
     };
   };
 }
