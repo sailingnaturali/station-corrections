@@ -105,3 +105,43 @@ noaa/9449746:
   name: Waldron Island
   context: San Juan Islands
   cities: [Friday Harbor]
+
+# These six arrive with their own qualifier already in the raw name (e.g.
+# "Blaine, Semiahmoo Bay"), so the derived-context fallback finds a gazetteer
+# place whose name is a substring of the raw name and suppresses itself via
+# namesOverlap - correctly avoiding a tautology like "Blaine near Blaine, WA",
+# but leaving these six with no context at all. Curated the same as every
+# other entry above rather than loosening namesOverlap, which is doing its
+# job for the 18 stations it was written for.
+
+noaa/9449679:
+  name: Blaine
+  context: Semiahmoo Bay
+  cities: [Blaine]
+
+noaa/9445958:
+  name: Bremerton
+  context: Sinclair Inlet
+  cities: [Bremerton, Port Orchard]
+
+noaa/9446807:
+  name: Budd Inlet
+  context: Olympia Shoal
+  cities: [Olympia]
+
+noaa/9449880:
+  name: Friday Harbor
+  context: San Juan Island
+  cities: [Friday Harbor]
+
+noaa/9447130:
+  name: Seattle
+  context: Elliott Bay
+  cities: [Seattle]
+  aliases: [madison st, seattle madison street]
+
+noaa/9446484:
+  name: Tacoma
+  context: Commencement Bay
+  cities: [Tacoma]
+  aliases: [sitcum waterway]

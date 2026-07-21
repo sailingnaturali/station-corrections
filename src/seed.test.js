@@ -36,6 +36,28 @@ const CONTEXTLESS = [
   ["noaa/9449746", "WALDRON ISLAND, PUGET SOUND", 48.687, -123.038],
 ];
 
+// These six carry their own qualifier in the raw name already ("Blaine,
+// Semiahmoo Bay"), which is exactly what makes the derived-context fallback
+// misfire: the nearest gazetteer place ("Blaine") is a substring of the raw
+// name, so namesOverlap suppresses the fallback and they resolve with no
+// context at all - a real regression this test set did not cover.
+const OVERLAP_SUPPRESSED = [
+  ["noaa/9449679", "Blaine, Semiahmoo Bay", 48.9917, -122.765],
+  ["noaa/9445958", "Bremerton, Sinclair Inlet, Port Orchard", 47.5617, -122.623],
+  ["noaa/9446807", "Budd Inlet, Olympia Shoal", 47.0983, -122.895],
+  ["noaa/9449880", "Friday Harbor, San Juan Island", 48.5453, -123.0125],
+  ["noaa/9447130", "SEATTLE (Madison St.), Elliott Bay", 47.6026, -122.3393],
+  ["noaa/9446484", "Tacoma, Commencement Bay, Sitcum Waterway", 47.2667, -122.4133],
+];
+
+for (const [id, raw, lat, lon] of OVERLAP_SUPPRESSED) {
+  test(`${raw} resolves with a context despite naming its own nearest place`, () => {
+    const r = resolve({ id, name: raw, latitude: lat, longitude: lon });
+    assert.notEqual(r.context, "", `${raw} still has no context`);
+    assert.notEqual(r.context.toLowerCase(), r.name.toLowerCase());
+  });
+}
+
 for (const [id, raw, lat, lon] of CONTEXTLESS) {
   test(`${raw} resolves with a context`, () => {
     const r = resolve({ id, name: raw, latitude: lat, longitude: lon });
