@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { auditStations } from "./audit.js";
+import { auditStations, classify } from "./audit.js";
 import { createResolver } from "./resolve.js";
 import { loadCorrections } from "./corrections.js";
 
@@ -75,6 +75,11 @@ test("reports rather than throws when no water is found within range", () => {
   assert.equal(findings.length, 1);
   assert.equal(findings[0].metresInland, Infinity);
   assert.equal(findings[0].suggestion, null);
+});
+
+test("classify refuses to call an uncovered position clear", () => {
+  const resolved = { id: "x", name: "X", latitude: 50.6033, longitude: -126.8117 };
+  assert.deepEqual(classify(resolved), { verdict: "unverifiable" });
 });
 
 test("does not report a station whose position is verified correct", () => {

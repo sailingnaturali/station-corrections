@@ -1,4 +1,4 @@
-import { isOnLand } from "./coastline.js";
+import { isOnLand, isWithinCoverage } from "./coastline.js";
 
 /**
  * Check that a corrections file's position overrides actually land in
@@ -25,4 +25,26 @@ export function validatePositions(map) {
     }
   }
   return problems;
+}
+
+/**
+ * Positions the coastline cannot answer for.
+ *
+ * Reported separately from `validatePositions` because these are not
+ * failures: a gate north of the Salish Sea clip is fine, it just cannot be
+ * confirmed here. Silently passing it as water is the defect - the check
+ * would be claiming a result it never computed.
+ */
+export function coverageWarnings(map) {
+  const warnings = [];
+  for (const [id, record] of map) {
+    const position = record.position;
+    if (!Array.isArray(position) || position.length !== 2) continue;
+    const [lat, lon] = position;
+    if (typeof lat !== "number" || typeof lon !== "number") continue;
+    if (!isWithinCoverage(lat, lon)) {
+      warnings.push(`${id}: position ${lat}, ${lon} is outside coastline coverage - cannot be verified`);
+    }
+  }
+  return warnings;
 }

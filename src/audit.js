@@ -1,4 +1,4 @@
-import { inlandMetres, nearestWater } from "./coastline.js";
+import { inlandMetres, nearestWater, isWithinCoverage } from "./coastline.js";
 
 /**
  * How far inland a station must be before it is worth reporting.
@@ -28,6 +28,9 @@ export const REPORT_THRESHOLD_M = 200;
  */
 export function classify(resolved, thresholdM = REPORT_THRESHOLD_M) {
   if (resolved.positionVerified) return { verdict: "verified" };
+  // Outside the coastline clip there is no land data, so inlandMetres would
+  // return 0 and this would pin a "clear" it never actually checked.
+  if (!isWithinCoverage(resolved.latitude, resolved.longitude)) return { verdict: "unverifiable" };
   const metresInland = inlandMetres(resolved.latitude, resolved.longitude);
   if (metresInland <= thresholdM) return { verdict: "clear" };
   return { verdict: "ashore", metresInland };
