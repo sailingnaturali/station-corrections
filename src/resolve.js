@@ -78,6 +78,7 @@ export function createResolver({ corrections = new Map(), gazetteer = [], regist
       longitude: position[1],
       corrected: Boolean(override.position),
       derived,
+      formerSlugs: override.formerSlugs ?? [],
     };
     // Only present when the correction sets it - an always-there
     // `positionVerified: undefined` key is an output no one asked for.
@@ -128,6 +129,7 @@ function resolveOwned(id, owned) {
     longitude: position[1],
     corrected: false,
     derived: false,
+    formerSlugs: owned.formerSlugs ?? [],
   };
 }
 

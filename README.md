@@ -92,6 +92,7 @@ noaa/9442396:
 | `slug` | Canonical URL segment. Lives here so a name fix and its URL move together. |
 | `cities` | Nearest settlements, for search. Not for display. |
 | `aliases` | What someone might type. Local names, former names, misspellings. |
+| `formerSlugs` | Slugs this station used to resolve to. A slug is an API — this is how a consumer builds a redirect map for links shared under the old one. See [Pinning slugs with a lock](#pinning-slugs-with-a-lock). |
 | `position` | A corrected `[lat, lon]`. Requires `reason`. |
 | `positionVerified` | A reason the published position is *right* despite reading inland. Mutually exclusive with `position`. Passed straight through to the resolved object when set, and omitted from it otherwise. |
 
@@ -119,7 +120,8 @@ chs-dodd-narrows:
 `providerId` stays separate from the key: `chs-dodd-narrows` is stable and safe in a URL, while
 `63aef186…` is an opaque API handle. A station may not appear in both files — two sources of
 authority for one station is the bug, not a feature — and slugs must be unique across both,
-because URLs share one namespace.
+because URLs share one namespace. `formerSlugs` (see the corrections table above) is valid here
+too, for the same reason: both files feed the one slug namespace a consumer routes on.
 
 A corrected `position` is checked for plausible distance from what the provider published; a
 registry position is not, because it *is* the published value. That absence is deliberate.
@@ -171,6 +173,22 @@ too — that's a data change worth reviewing, not a false alarm. `audit` reuses 
 for any station whose resolved position and the lock's coastline/threshold all still match,
 reporting how many were cached versus freshly checked.
 
+## Pinning slugs with a lock
+
+```bash
+npx station-corrections slugs        # writes data/slugs.lock.json
+npx station-corrections check-slugs  # exit 1 if a slug moved without being recorded
+```
+
+A slug is an API: it goes straight into a shareable URL (`slackwater-web` routes `/tide/<slug>`),
+so changing one silently is a breaking change shipped as a patch. `data/slugs.lock.json` pins the
+current slug per station; CI cannot tell a slug *changed* without knowing the previous value.
+`check-slugs` fails when a station's slug differs from the lock and the old value is not in that
+station's `formerSlugs` — and separately, `validate` already rejects a new slug that collides with
+another station's current slug **or** its `formerSlugs` (a recycled slug would silently redirect
+old links to the wrong station, worse than a 404), plus a malformed `formerSlugs` entry. Move a
+slug and record its old value in `formerSlugs` in the same change, then regenerate the lock.
+
 ## Contributing a correction
 
 Edit `data/corrections.yaml`, then run `npm run build:data` — the YAML is the source of truth,
@@ -178,8 +196,9 @@ and `data/corrections.json` is a committed artifact compiled from it so browsers
 data without a filesystem. CI fails if the two are out of step.
 
 Corrections are pull requests, and CI checks them mechanically: schema validity, `reason`
-present whenever `position` is, unique slugs, no context that restates its name, and that a
-corrected `position` actually lands in water against the bundled coastline.
+present whenever `position` is, unique slugs (current and former), no context that restates its
+name, that a corrected `position` actually lands in water against the bundled coastline, and
+(`check-slugs`) that a moved slug was recorded in `formerSlugs`.
 
 Pass a stations file — `station-corrections validate stations.json` — and one more check runs:
 that a corrected position is within **5 km** of the one the provider published. A correction is

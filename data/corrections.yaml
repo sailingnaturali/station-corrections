@@ -5,6 +5,11 @@
 # `context` is whatever most usefully distinguishes this place — a water body,
 # an island group, a region, a county, or a characteristic. It must never
 # restate the name.
+#
+# `formerSlugs` records a slug this station used to resolve to, so a consumer
+# can redirect an old shared link instead of 404ing it. Set it in the same
+# change that moves `slug` - `station-corrections check-slugs` (data/slugs.lock.json)
+# fails a slug change that does not record the old value here.
 
 noaa/9447659:
   name: Everett

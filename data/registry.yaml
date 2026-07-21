@@ -11,6 +11,11 @@
 # Positions and providerIds are taken from currents-vault pass frontmatter and
 # agree with chs-constituents/stations/salish-sea.json. Contexts are written
 # here.
+#
+# `formerSlugs` records a slug this station used to resolve to, so a consumer
+# can redirect an old shared link instead of 404ing it. Set it in the same
+# change that moves `slug` - `station-corrections check-slugs` (data/slugs.lock.json)
+# fails a slug change that does not record the old value here.
 
 chs-active-pass:
   name: Active Pass

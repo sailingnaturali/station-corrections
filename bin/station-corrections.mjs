@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { auditStations, classify, REPORT_THRESHOLD_M } from "../src/audit.js";
 import { buildLock, readLock, diffLock } from "../src/lock.js";
+import { buildSlugsLock, readSlugsLock, checkSlugs } from "../src/slugs-lock.js";
 import { createBundledResolver } from "../src/index.js";
 import { loadCorrections, validateCorrections, validateAgainstStations } from "../src/corrections.js";
 import { validatePositions, coverageWarnings } from "../src/validate-positions.js";
@@ -19,6 +20,7 @@ const registry = loadRegistry(
 
 const coastlinePath = fileURLToPath(new URL("../data/coastline.geojson", import.meta.url));
 const lockPath = fileURLToPath(new URL("../data/audit.lock.json", import.meta.url));
+const slugsLockPath = fileURLToPath(new URL("../data/slugs.lock.json", import.meta.url));
 
 /** SHA-256 of the coastline file, so a lock records which coastline it was built against. */
 function coastlineFingerprint() {
@@ -215,7 +217,33 @@ if (command === "check") {
   process.exit(0);
 }
 
-console.error("usage: station-corrections <validate|audit|lock|check> [stations.json]");
+if (command === "slugs") {
+  const lock = buildSlugsLock(corrections, registry);
+  writeFileSync(slugsLockPath, JSON.stringify(lock, null, 2) + "\n");
+  console.log(`wrote ${slugsLockPath} - ${Object.keys(lock.slugs).length} station(s)`);
+  process.exit(0);
+}
+
+if (command === "check-slugs") {
+  let lock;
+  try {
+    lock = readSlugsLock(readFileSync(slugsLockPath, "utf8"));
+  } catch (err) {
+    console.error(`check-slugs: could not read ${slugsLockPath} (${err.code === "ENOENT" ? "no such file - run \`station-corrections slugs\` first" : err.message})`);
+    process.exit(1);
+  }
+
+  const problems = checkSlugs(lock, corrections, registry);
+  for (const problem of problems) console.error(problem);
+  if (problems.length) {
+    console.error(`\n${problems.length} problem(s) - regenerate with \`station-corrections slugs\` once the change is reviewed and recorded in formerSlugs`);
+    process.exit(1);
+  }
+  console.log(`check-slugs: ${Object.keys(lock.slugs).length} station(s) match the lock`);
+  process.exit(0);
+}
+
+console.error("usage: station-corrections <validate|audit|lock|check|slugs|check-slugs> [stations.json]");
 console.error("  validate [stations.json]  stations file is optional; supplying it also checks");
 console.error("                            each correction's distance from the published position");
 process.exit(1);

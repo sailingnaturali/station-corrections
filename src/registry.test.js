@@ -178,6 +178,79 @@ chs-dodd-narrows:
   assert.match(problems[0], /collides with chs-dodd-narrows/);
 });
 
+test("accepts valid formerSlugs on a registry entry", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-dodd-narrows:
+  name: Dodd Narrows
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: abc
+  formerSlugs: [old-dodd]
+`));
+  assert.deepEqual(problems, []);
+});
+
+test("rejects a malformed formerSlugs entry on a registry entry", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-x:
+  name: X
+  position: [49, -123]
+  provider: chs
+  providerId: abc
+  formerSlugs: [Not A Slug]
+`));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /formerSlugs entry "Not A Slug" must be lowercase/);
+});
+
+test("rejects a registry slug colliding with another registry entry's formerSlugs", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-a:
+  name: A
+  position: [49, -123]
+  provider: chs
+  providerId: a
+  formerSlugs: [old-b]
+chs-b:
+  name: B
+  slug: old-b
+  position: [49, -123]
+  provider: chs
+  providerId: b
+`));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /chs-b: slug "old-b" collides with a former slug of chs-a/);
+});
+
+test("rejects a registry slug colliding with a corrections entry's formerSlugs", () => {
+  const registry = loadRegistry(`
+chs-dodd-narrows:
+  name: Nanaimo
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: abc
+`);
+  const corrections = loadCorrections("noaa/1:\n  formerSlugs: [nanaimo]\n");
+  const problems = validateRegistry(registry, { corrections });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /chs-dodd-narrows: slug "nanaimo" collides with a former slug of noaa\/1/);
+});
+
+test("rejects a corrections slug colliding with a registry entry's formerSlugs", () => {
+  const registry = loadRegistry(`
+chs-dodd-narrows:
+  name: Dodd Narrows
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: abc
+  formerSlugs: [nanaimo]
+`);
+  const corrections = loadCorrections("noaa/1:\n  name: Nanaimo\n  slug: nanaimo\n");
+  const problems = validateRegistry(registry, { corrections });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /noaa\/1: slug "nanaimo" collides with a former slug of chs-dodd-narrows/);
+});
+
 test("a registry entry with no slug and no name does not throw or register a bogus slug", () => {
   const registry = loadRegistry(`
 chs-a:

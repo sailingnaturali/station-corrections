@@ -23,6 +23,9 @@ import {
   MAX_CORRECTION_KM,
   loadRegistry,
   validateRegistry,
+  buildSlugsLock,
+  readSlugsLock,
+  checkSlugs,
   type Station,
   type ResolvedStation,
   type Resolver,
@@ -31,6 +34,7 @@ import {
   type Lock,
   type Registry,
   type RegistryStation,
+  type SlugsLock,
 } from "../index.js";
 import { validatePositions, coverageWarnings } from "../validate-positions.js";
 import { classify } from "../src/audit.js";
@@ -47,6 +51,7 @@ const cities: string[] = resolved.cities;
 const aliases: string[] = resolved.aliases;
 const corrected: boolean = resolved.corrected;
 const lat: number = resolved.latitude;
+const formerSlugs: string[] = resolved.formerSlugs;
 // Optional, so it must not be assignable to a bare string.
 const verified: string | undefined = resolved.positionVerified;
 
@@ -102,10 +107,15 @@ const registryPositionProblems: string[] = validatePositions(reg);
 const correctionsCoverage: string[] = coverageWarnings(corrections);
 const registryCoverage: string[] = coverageWarnings(reg);
 
+const slugsLock: SlugsLock = buildSlugsLock(corrections, reg);
+const rereadSlugsLock: SlugsLock = readSlugsLock(JSON.stringify(slugsLock));
+const slugProblems: string[] = checkSlugs(rereadSlugsLock, corrections, reg);
+
 // Reference every binding so noUnusedLocals stays on for real mistakes.
 export const surface = {
-  resolved, name, context, cities, aliases, corrected, lat, verified,
+  resolved, name, context, cities, aliases, corrected, lat, verified, formerSlugs,
   own, bare, noArgs, byIdAlone, bundledById, problems, limit, cleaned, slug, reread, movedIds, unchanged,
   reg, entry, regProblems, fromRegistry,
   registryPositionProblems, correctionsCoverage, registryCoverage,
+  slugsLock, rereadSlugsLock, slugProblems,
 };

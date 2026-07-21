@@ -43,6 +43,10 @@ const isValidPosition = (v) =>
 export function validateRegistry(registry, { corrections = new Map() } = {}) {
   const problems = [];
   const slugs = new Map();
+  // Registry-side former slugs, keyed by the slug string - so an id's
+  // *current* slug (registry or corrections) can be checked against any
+  // station's slug history, not just its own file's current slugs.
+  const formerSlugOwners = new Map();
 
   for (const [id, record] of registry) {
     for (const field of ["name", "provider", "providerId"]) {
@@ -59,9 +63,18 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
         problems.push(`${id}: ${field} must be a string`);
       }
     }
-    for (const field of ["cities", "aliases"]) {
+    for (const field of ["cities", "aliases", "formerSlugs"]) {
       if (record[field] !== undefined && !isStringArray(record[field])) {
         problems.push(`${id}: ${field} must be an array of strings`);
+      }
+    }
+
+    if (isStringArray(record.formerSlugs)) {
+      for (const former of record.formerSlugs) {
+        if (!/^[a-z0-9-]+$/.test(former)) {
+          problems.push(`${id}: formerSlugs entry "${former}" must be lowercase letters, digits and hyphens`);
+        }
+        formerSlugOwners.set(former, id);
       }
     }
 
@@ -113,8 +126,38 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
   // (validateCorrections never closes it) and must keep behaving the same
   // after this change. Only the registry side gets effective-slug checking.
   for (const [id, record] of corrections) {
+    if (isStringArray(record.formerSlugs)) {
+      for (const former of record.formerSlugs) formerSlugOwners.set(former, id);
+    }
     if (record.slug !== undefined && isString(record.slug) && slugs.has(record.slug)) {
       problems.push(`${id}: slug "${record.slug}" collides with ${slugs.get(record.slug)} in the registry`);
+    }
+  }
+
+  // Recycled-slug check, spanning both files: a station's *current* slug
+  // (registry effective, corrections explicit - the same split kept above)
+  // must not equal any station's former slug, or an old link would silently
+  // redirect to the wrong place. `formerSlugOwners` is only complete once
+  // both loops above have run, so this has to be its own pass.
+  for (const [id, record] of registry) {
+    const effectiveSlug =
+      record.slug !== undefined && isString(record.slug)
+        ? record.slug
+        : isNonEmptyString(record.name)
+          ? toSlug(record.name)
+          : undefined;
+    if (effectiveSlug !== undefined && formerSlugOwners.has(effectiveSlug) && formerSlugOwners.get(effectiveSlug) !== id) {
+      problems.push(`${id}: slug "${effectiveSlug}" collides with a former slug of ${formerSlugOwners.get(effectiveSlug)}`);
+    }
+  }
+  for (const [id, record] of corrections) {
+    if (
+      record.slug !== undefined &&
+      isString(record.slug) &&
+      formerSlugOwners.has(record.slug) &&
+      formerSlugOwners.get(record.slug) !== id
+    ) {
+      problems.push(`${id}: slug "${record.slug}" collides with a former slug of ${formerSlugOwners.get(record.slug)}`);
     }
   }
 

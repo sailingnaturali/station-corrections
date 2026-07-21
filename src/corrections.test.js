@@ -120,6 +120,37 @@ noaa/2:
   assert.match(validateCorrections(map)[0], /duplicate slug/);
 });
 
+test("accepts valid formerSlugs", () => {
+  const map = loadCorrections(`
+noaa/1:
+  slug: everett
+  formerSlugs: [old-everett, ancient-everett]
+`);
+  assert.deepEqual(validateCorrections(map), []);
+});
+
+test("rejects a malformed formerSlugs entry", () => {
+  const map = loadCorrections(`
+noaa/1:
+  formerSlugs: [Not A Slug]
+`);
+  assert.equal(validateCorrections(map).length, 1);
+  assert.match(validateCorrections(map)[0], /formerSlugs entry "Not A Slug" must be lowercase/);
+});
+
+test("rejects a slug colliding with another station's formerSlugs", () => {
+  const map = loadCorrections(`
+noaa/1:
+  slug: anacortes
+  formerSlugs: [old-anacortes]
+noaa/2:
+  slug: old-anacortes
+`);
+  const problems = validateCorrections(map);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /noaa\/2.*slug "old-anacortes".*collides with a former slug of noaa\/1/);
+});
+
 test("rejects an implausible position", () => {
   const map = loadCorrections(`
 noaa/1:
@@ -204,7 +235,7 @@ noaa/1:
   });
 }
 
-for (const field of ["aliases", "cities"]) {
+for (const field of ["aliases", "cities", "formerSlugs"]) {
   test(`reports a non-array ${field} instead of throwing`, () => {
     const map = loadCorrections(`
 noaa/1:

@@ -72,6 +72,27 @@ test("aliases always include the name and the slug", () => {
   assert.ok(r.aliases.includes("cherry-point"));
 });
 
+test("formerSlugs defaults to an empty array when the correction sets none", () => {
+  const r = resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
+  assert.deepEqual(r.formerSlugs, []);
+});
+
+test("formerSlugs appears on the resolved record when the correction sets it", () => {
+  const withHistory = loadCorrections(`
+noaa/8:
+  name: Swinomish Channel Entrance
+  slug: swinomish-channel-entrance
+  formerSlugs: [anacortes]
+`);
+  const r = createResolver({ corrections: withHistory })({
+    id: "noaa/8",
+    name: "Swinomish Channel ent., Padilla Bay",
+    latitude: 48.4583,
+    longitude: -122.513,
+  });
+  assert.deepEqual(r.formerSlugs, ["anacortes"]);
+});
+
 test("omits positionVerified from the resolved object when not set", () => {
   const r = resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
   assert.equal("positionVerified" in r, false);
@@ -224,6 +245,21 @@ test("a registry station resolves from its id alone", () => {
   assert.deepEqual(r.cities, ["Nanaimo"]);
   assert.equal(r.corrected, false);
   assert.equal(r.derived, false);
+  assert.deepEqual(r.formerSlugs, []);
+});
+
+test("formerSlugs appears on a registry station's resolved record", () => {
+  const registryWithHistory = new Map([
+    ["chs-dodd-narrows", {
+      name: "Dodd Narrows",
+      position: [49.1344, -123.8171],
+      provider: "chs",
+      providerId: "abc",
+      formerSlugs: ["dodds-narrows"],
+    }],
+  ]);
+  const r = createResolver({ registry: registryWithHistory })({ id: "chs-dodd-narrows" });
+  assert.deepEqual(r.formerSlugs, ["dodds-narrows"]);
 });
 
 test("registry aliases include the name and slug", () => {

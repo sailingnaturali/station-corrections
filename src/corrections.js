@@ -28,6 +28,10 @@ const isValidPosition = (v) =>
 export function validateCorrections(map) {
   const problems = [];
   const slugs = new Map();
+  // Slug a station used to have, e.g. before issue #6 reattached its name -
+  // → the id that once used it, so a later id claiming that string is a
+  // recycled-slug collision (see the second pass below), not a fresh one.
+  const formerSlugOwners = new Map();
 
   for (const [id, record] of map) {
     for (const field of ["name", "context", "slug", "reason", "positionVerified"]) {
@@ -35,9 +39,18 @@ export function validateCorrections(map) {
         problems.push(`${id}: ${field} must be a string`);
       }
     }
-    for (const field of ["aliases", "cities"]) {
+    for (const field of ["aliases", "cities", "formerSlugs"]) {
       if (record[field] !== undefined && !isStringArray(record[field])) {
         problems.push(`${id}: ${field} must be an array of strings`);
+      }
+    }
+
+    if (isStringArray(record.formerSlugs)) {
+      for (const former of record.formerSlugs) {
+        if (!/^[a-z0-9-]+$/.test(former)) {
+          problems.push(`${id}: formerSlugs entry "${former}" must be lowercase letters, digits and hyphens`);
+        }
+        formerSlugOwners.set(former, id);
       }
     }
 
@@ -79,6 +92,24 @@ export function validateCorrections(map) {
         problems.push(`${id}: duplicate slug "${record.slug}", also used by ${slugs.get(record.slug)}`);
       }
       slugs.set(record.slug, id);
+    }
+  }
+
+  // Second pass, not folded into the loop above: a collision between a
+  // current slug and a formerSlugs entry can be discovered from either side
+  // depending on which record the map happens to visit first, so both
+  // `slugs` and `formerSlugOwners` need to be fully populated before either
+  // is checked against the other.
+  for (const [id, record] of map) {
+    if (
+      record.slug !== undefined &&
+      isString(record.slug) &&
+      formerSlugOwners.has(record.slug) &&
+      formerSlugOwners.get(record.slug) !== id
+    ) {
+      problems.push(
+        `${id}: slug "${record.slug}" collides with a former slug of ${formerSlugOwners.get(record.slug)} - a recycled slug would silently redirect old links to the wrong station`,
+      );
     }
   }
 

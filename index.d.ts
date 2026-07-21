@@ -48,6 +48,8 @@ export interface Correction {
   slug?: string;
   cities?: string[];
   aliases?: string[];
+  /** Slugs this station used to resolve to. A consumer builds a redirect map from these. */
+  formerSlugs?: string[];
   /** A corrected `[latitude, longitude]`. Requires `reason`. */
   position?: [number, number];
   /** Why the published position is wrong. Required whenever `position` is set. */
@@ -70,6 +72,8 @@ export interface ResolvedStation {
   corrected: boolean;
   /** True when the context was derived from the nearest gazetteer place. */
   derived: boolean;
+  /** Slugs this station used to resolve to. Always present; empty when none are recorded. */
+  formerSlugs: string[];
   /** Present only when the correction sets it. */
   positionVerified?: string;
 }
@@ -172,6 +176,8 @@ export interface RegistryStation {
   slug?: string;
   cities?: string[];
   aliases?: string[];
+  /** Slugs this station used to resolve to. A consumer builds a redirect map from these. */
+  formerSlugs?: string[];
 }
 
 /** Registry entries keyed by stable station id, e.g. `chs-dodd-narrows`. */
@@ -188,3 +194,23 @@ export function validateRegistry(
   registry: Registry,
   options?: { corrections?: Corrections },
 ): string[];
+
+/** Current slug per station id, as pinned by `station-corrections slugs`. */
+export interface SlugsLock {
+  note: string;
+  generated: string;
+  slugs: Record<string, string>;
+}
+
+/** Build the slugs lock from the current corrections and registry data. */
+export function buildSlugsLock(corrections: Corrections, registry: Registry): SlugsLock;
+
+/** Parse a slugs lock from its on-disk JSON string. */
+export function readSlugsLock(json: string): SlugsLock;
+
+/**
+ * Check a slugs lock against the current corrections and registry data.
+ * Fails when a station's slug differs from the lock and the lock's value is
+ * not recorded in that station's `formerSlugs`.
+ */
+export function checkSlugs(lock: SlugsLock, corrections: Corrections, registry: Registry): string[];

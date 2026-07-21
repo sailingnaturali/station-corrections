@@ -1,0 +1,27 @@
+{
+  "note": "Current slug per station, so a change can be detected without re-reading git history. `station-corrections check-slugs` fails when a slug moved without the old value recorded in formerSlugs. Regenerate with `station-corrections slugs`.",
+  "generated": "2026-07-21",
+  "slugs": {
+    "noaa/9447659": "everett",
+    "noaa/9442396": "la-push",
+    "chs-active-pass": "active-pass",
+    "chs-arran-rapids": "arran-rapids",
+    "chs-beazley-passage": "beazley-passage",
+    "chs-blackney-passage": "blackney-passage",
+    "chs-dent-rapids": "dent-rapids",
+    "chs-dodd-narrows": "dodd-narrows",
+    "chs-first-narrows": "first-narrows",
+    "chs-gabriola-passage": "gabriola-passage",
+    "chs-gillard-passage": "gillard-passage",
+    "chs-hole-in-the-wall": "hole-in-the-wall",
+    "chs-johnstone-strait-central": "johnstone-strait-central",
+    "chs-juan-de-fuca-east": "juan-de-fuca-east",
+    "chs-porlier-pass": "porlier-pass",
+    "chs-race-passage": "race-passage",
+    "chs-sechelt-rapids": "sechelt-rapids",
+    "chs-second-narrows": "second-narrows",
+    "chs-seymour-narrows": "seymour-narrows",
+    "chs-tillicum-bridge": "tillicum-bridge",
+    "chs-weynton-passage": "weynton-passage"
+  }
+}
