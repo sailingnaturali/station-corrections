@@ -24,13 +24,18 @@ function splitQualifier(cleaned) {
  * Build a resolver over a corrections map and a gazetteer.
  *
  * Resolution order, highest first:
+ *   0. registry — a station this package owns resolves fully from its id
+ *      alone; provider data on the incoming station is ignored outright
  *   1. curated override — anything in the corrections file wins
  *   2. source data — the provider's own name, cleaned and, if it carries a
  *      comma qualifier, split into a name and a context
  *   3. derived fallback — nearest gazetteer place, so context is never empty
  */
-export function createResolver({ corrections = new Map(), gazetteer = [] } = {}) {
+export function createResolver({ corrections = new Map(), gazetteer = [], registry = new Map() } = {}) {
   return function resolve(station) {
+    const owned = registry.get(station.id);
+    if (owned) return resolveOwned(station.id, owned);
+
     const override = corrections.get(station.id) ?? {};
     const split = splitQualifier(cleanName(station.name));
     const name = override.name ?? split.primary;
@@ -78,6 +83,40 @@ export function createResolver({ corrections = new Map(), gazetteer = [] } = {})
     // `positionVerified: undefined` key is an output no one asked for.
     if (override.positionVerified !== undefined) result.positionVerified = override.positionVerified;
     return result;
+  };
+}
+
+/**
+ * Resolve a station the registry owns.
+ *
+ * Returns the same shape as the overlay path so consumers see one type.
+ * `corrected` and `derived` are both false and both accurate: nothing was
+ * corrected, because there is no published value to correct, and the context
+ * was curated rather than derived from the gazetteer.
+ *
+ * Provider data on the incoming station is ignored outright - if the registry
+ * owns a station, it is the authority, and quietly preferring a caller's name
+ * would reintroduce exactly the ambiguity the registry exists to remove.
+ */
+function resolveOwned(id, owned) {
+  const name = owned.name;
+  const slug = owned.slug ?? toSlug(name);
+  const aliases = new Set([
+    name.toLowerCase(),
+    slug,
+    ...(owned.aliases ?? []).filter((a) => typeof a === "string").map((a) => a.toLowerCase()),
+  ]);
+  return {
+    id,
+    name,
+    context: owned.context ?? "",
+    slug,
+    cities: owned.cities ?? [],
+    aliases: [...aliases],
+    latitude: owned.position[0],
+    longitude: owned.position[1],
+    corrected: false,
+    derived: false,
   };
 }
 

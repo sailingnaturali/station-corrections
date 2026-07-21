@@ -200,3 +200,53 @@ test("a plain name with no comma is unaffected by the split", () => {
   const r = splitResolve({ id: "noaa/107", name: "Everett", latitude: 47.979, longitude: -122.202 });
   assert.equal(r.name, "Everett");
 });
+
+const registry = new Map([
+  ["chs-dodd-narrows", {
+    name: "Dodd Narrows",
+    context: "Nanaimo",
+    position: [49.1344, -123.8171],
+    provider: "chs",
+    providerId: "63aef1866a2b9417c035030f",
+    cities: ["Nanaimo"],
+    aliases: ["dodd"],
+  }],
+]);
+const withRegistry = createResolver({ corrections, gazetteer, registry });
+
+test("a registry station resolves from its id alone", () => {
+  const r = withRegistry({ id: "chs-dodd-narrows" });
+  assert.equal(r.name, "Dodd Narrows");
+  assert.equal(r.context, "Nanaimo");
+  assert.equal(r.slug, "dodd-narrows");
+  assert.equal(r.latitude, 49.1344);
+  assert.equal(r.longitude, -123.8171);
+  assert.deepEqual(r.cities, ["Nanaimo"]);
+  assert.equal(r.corrected, false);
+  assert.equal(r.derived, false);
+});
+
+test("registry aliases include the name and slug", () => {
+  const r = withRegistry({ id: "chs-dodd-narrows" });
+  assert.ok(r.aliases.includes("dodd narrows"));
+  assert.ok(r.aliases.includes("dodd-narrows"));
+  assert.ok(r.aliases.includes("dodd"));
+});
+
+test("the registry outranks provider data", () => {
+  const r = withRegistry({ id: "chs-dodd-narrows", name: "WRONG", latitude: 1, longitude: 2 });
+  assert.equal(r.name, "Dodd Narrows");
+  assert.equal(r.latitude, 49.1344);
+});
+
+test("a station not in the registry falls through to the overlay unchanged", () => {
+  const r = withRegistry({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
+  assert.equal(r.name, "Everett");
+  assert.equal(r.context, "Port Gardner");
+});
+
+test("a resolver with no registry behaves exactly as before", () => {
+  const r = resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
+  assert.equal(r.name, "Everett");
+  assert.equal(r.context, "Port Gardner");
+});
