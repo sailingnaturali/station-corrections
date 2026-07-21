@@ -72,6 +72,7 @@ export function createBundledResolver(): Resolver;
 export function createResolver(options?: {
   corrections?: Corrections;
   gazetteer?: GazetteerPlace[];
+  registry?: Registry;
 }): Resolver;
 
 /** Parse a corrections YAML document into a map keyed by station ID. */

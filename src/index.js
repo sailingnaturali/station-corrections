@@ -1,6 +1,7 @@
 import { createResolver } from "./resolve.js";
 import corrections from "../data/corrections.json" with { type: "json" };
 import gazetteer from "../data/gazetteer.json" with { type: "json" };
+import registry from "../data/registry.json" with { type: "json" };
 
 export { createResolver } from "./resolve.js";
 export {
@@ -33,5 +34,9 @@ export { loadRegistry, validateRegistry } from "./registry.js";
  * ./audit.js and ./validate-positions.js and is never imported from here.
  */
 export function createBundledResolver() {
-  return createResolver({ corrections: new Map(Object.entries(corrections)), gazetteer });
+  return createResolver({
+    corrections: new Map(Object.entries(corrections)),
+    registry: new Map(Object.entries(registry)),
+    gazetteer,
+  });
 }
