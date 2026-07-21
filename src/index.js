@@ -26,7 +26,7 @@ export { loadRegistry, validateRegistry } from "./registry.js";
  *
  * `data/corrections.json` is compiled from the YAML for exactly this reason —
  * a browser cannot read a file off disk, and every runtime can import JSON.
- * See `scripts/build-corrections-json.mjs`.
+ * See `scripts/build-data.mjs`.
  *
  * Both files are a few KB and load eagerly with this module. The data kept
  * deliberately out of reach is the 3.6 MB coastline, which lives behind
