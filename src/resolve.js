@@ -1,17 +1,7 @@
 import { cleanName } from "./clean.js";
 import { toSlug } from "./slug.js";
-import { namesOverlap } from "./corrections.js";
-
-/** Great-circle distance in kilometres. */
-function distanceKm(aLat, aLon, bLat, bLon) {
-  const toRad = Math.PI / 180;
-  const dLat = (bLat - aLat) * toRad;
-  const dLon = (bLon - aLon) * toRad;
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(aLat * toRad) * Math.cos(bLat * toRad) * Math.sin(dLon / 2) ** 2;
-  return 6371 * 2 * Math.asin(Math.sqrt(h));
-}
+import { namesOverlap } from "./names.js";
+import { distanceKm } from "./distance.js";
 
 /**
  * Split a cleaned name on NOAA's comma-qualifier convention: "Friday Harbor,

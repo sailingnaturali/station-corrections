@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { auditStations, classify, REPORT_THRESHOLD_M } from "../src/audit.js";
 import { buildLock, readLock, diffLock } from "../src/lock.js";
 import { createBundledResolver } from "../src/index.js";
-import { loadCorrections, validateCorrections } from "../src/corrections.js";
+import { loadCorrections, validateCorrections, validateAgainstStations } from "../src/corrections.js";
 import { validatePositions } from "../src/validate-positions.js";
 import { fileURLToPath } from "node:url";
 
@@ -52,8 +52,21 @@ function loadStations(command, stationsPath) {
 const [command, stationsPath] = process.argv.slice(2);
 
 if (command === "validate") {
-  const problems = [...validateCorrections(corrections), ...validatePositions(corrections)];
+  // The stations file is optional: without it the two checks that need only
+  // the corrections file still run. With it, a correction can also be checked
+  // against the position it is correcting - the one check the corrections
+  // file alone cannot express, because it does not record where the provider
+  // said the station was.
+  const stations = stationsPath ? loadStations("validate", stationsPath) : null;
+  const problems = [
+    ...validateCorrections(corrections),
+    ...validatePositions(corrections),
+    ...(stations ? validateAgainstStations(corrections, stations) : []),
+  ];
   for (const problem of problems) console.error(problem);
+  if (!stations) {
+    console.error("note: no stations file given - skipping the distance-from-published check");
+  }
   console.error(problems.length ? `\n${problems.length} problem(s)` : "corrections file is valid");
   process.exit(problems.length ? 1 : 0);
 }
@@ -164,4 +177,6 @@ if (command === "check") {
 }
 
 console.error("usage: station-corrections <validate|audit|lock|check> [stations.json]");
+console.error("  validate [stations.json]  stations file is optional; supplying it also checks");
+console.error("                            each correction's distance from the published position");
 process.exit(1);

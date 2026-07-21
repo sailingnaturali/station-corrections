@@ -34,6 +34,12 @@ resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.
 It is provider-agnostic: `noaa/9447659`, `chs-active-pass` and `PUG1717` all resolve through the
 same overlay, so tides, currents and both countries share one vocabulary.
 
+TypeScript declarations ship with the package — no ambient declaration needed.
+
+**Runs in the browser.** `createBundledResolver` imports its data as JSON rather than reading
+files, so it needs no filesystem and works unchanged in a bundle. It weighs about 7 KB bundled;
+the `yaml` parser tree-shakes away unless you call `loadCorrections` yourself.
+
 To resolve against your own corrections or gazetteer instead of the bundled ones, use
 `createResolver({ corrections, gazetteer })` directly with `loadCorrections`. Advanced consumers
 that need the raw shipped files can reach them via the `./data/*` export subpath, e.g.
@@ -97,7 +103,7 @@ a word, passes.
 
 ```bash
 npx station-corrections audit stations.json
-npx station-corrections validate
+npx station-corrections validate [stations.json]
 ```
 
 The audit tests every resolved position against a bundled coastline and reports those more than
@@ -134,9 +140,20 @@ reporting how many were cached versus freshly checked.
 
 ## Contributing a correction
 
+Edit `data/corrections.yaml`, then run `npm run build:data` — the YAML is the source of truth,
+and `data/corrections.json` is a committed artifact compiled from it so browsers can import the
+data without a filesystem. CI fails if the two are out of step.
+
 Corrections are pull requests, and CI checks them mechanically: schema validity, `reason`
 present whenever `position` is, unique slugs, no context that restates its name, and that a
 corrected `position` actually lands in water against the bundled coastline.
+
+Pass a stations file — `station-corrections validate stations.json` — and one more check runs:
+that a corrected position is within **5 km** of the one the provider published. A correction is
+a fix, not a relocation; the gauge is where it is, and what is wrong is the coordinate written
+down for it. This one needs the published station list, which the corrections file deliberately
+does not duplicate (a copy of upstream data drifts the moment upstream moves), so it only runs
+when a caller supplies it.
 
 If a station looks wrong in an app built on this, a one-line PR fixes it for everyone.
 
@@ -155,7 +172,8 @@ the data — if one fails, fix the data, not the test.
 
 ```bash
 npm install
-npm test
+npm test           # node --test, then tsc over the shipped declarations
+npm run build:data # recompile data/corrections.json after editing the YAML
 ```
 
 ---

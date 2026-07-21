@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import * as index from "./index.js";
 
@@ -19,7 +19,8 @@ const COASTLINE_DEPENDENT_MODULES = new Set(["audit.js", "coastline.js", "valida
 
 /** Named exports that are internal implementation details, not public API, even though their module is otherwise public. */
 const INTERNAL_EXPORTS = new Set([
-  "namesOverlap", // corrections.js: helper shared by resolve.js and validateCorrections itself, not a consumer-facing utility
+  "namesOverlap", // names.js: helper shared by resolve.js and validateCorrections, not a consumer-facing utility
+  "distanceKm", // distance.js: shared leaf so resolve.js and corrections.js need not import each other; not API anyone asked for
 ]);
 
 test("every public-API module's named exports are re-exported from index.js", async () => {
@@ -41,5 +42,21 @@ test("every public-API module's named exports are re-exported from index.js", as
       if (INTERNAL_EXPORTS.has(name)) continue;
       assert.ok(name in index, `${file} exports "${name}" but index.js does not re-export it`);
     }
+  }
+});
+
+test("every runtime export from index.js is declared in index.d.ts", () => {
+  // The runtime half of shipping types. types/surface.ts proves the
+  // declarations are *correct* under tsc; this proves they are *complete* -
+  // tsc cannot notice a declaration that was never written, because nothing
+  // references it. Together they close the drift issue #4 describes.
+  const declarations = readFileSync(fileURLToPath(new URL("../index.d.ts", import.meta.url)), "utf8");
+
+  for (const name of Object.keys(index)) {
+    assert.match(
+      declarations,
+      new RegExp(`\\bexport\\s+(?:declare\\s+)?(?:function|const|class)\\s+${name}\\b`),
+      `index.js exports "${name}" but index.d.ts does not declare it`,
+    );
   }
 });

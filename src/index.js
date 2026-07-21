@@ -1,28 +1,36 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { createResolver } from "./resolve.js";
-import { loadCorrections } from "./corrections.js";
+import corrections from "../data/corrections.json" with { type: "json" };
+import gazetteer from "../data/gazetteer.json" with { type: "json" };
 
 export { createResolver } from "./resolve.js";
-export { loadCorrections, validateCorrections } from "./corrections.js";
+export {
+  loadCorrections,
+  validateCorrections,
+  validateAgainstStations,
+  MAX_CORRECTION_KM,
+} from "./corrections.js";
 export { cleanName } from "./clean.js";
 export { toSlug } from "./slug.js";
 export { buildLock, readLock, diffLock } from "./lock.js";
 
-const bundledPath = (name) => fileURLToPath(new URL(`../data/${name}`, import.meta.url));
-
 /**
- * Build a resolver over the corrections and gazetteer this package ships,
- * resolved relative to the installed package rather than the caller's cwd
- * (a plain `readFileSync("data/corrections.yaml")` breaks once installed,
- * because it resolves against the consumer's directory instead).
+ * Build a resolver over the corrections and gazetteer this package ships.
  *
- * Deliberately reads only the YAML and the gazetteer, not the coastline -
- * importing this library must never pay for parsing the 3.6 MB coastline;
- * that only happens for audit-related code that asks for it.
+ * The data arrives as JSON import attributes rather than `readFileSync`, so
+ * this module reaches no Node builtin and works unchanged in a browser
+ * bundle. It used to read the files off disk; in a bundler `node:url` gets
+ * externalized to a stub and the first call threw `fileURLToPath is not a
+ * function`, blanking the consuming app with nothing pointing back here.
+ * `src/browser-safe.test.js` fails if a Node builtin becomes reachable again.
+ *
+ * `data/corrections.json` is compiled from the YAML for exactly this reason —
+ * a browser cannot read a file off disk, and every runtime can import JSON.
+ * See `scripts/build-corrections-json.mjs`.
+ *
+ * Both files are a few KB and load eagerly with this module. The data kept
+ * deliberately out of reach is the 3.6 MB coastline, which lives behind
+ * ./audit.js and ./validate-positions.js and is never imported from here.
  */
 export function createBundledResolver() {
-  const corrections = loadCorrections(readFileSync(bundledPath("corrections.yaml"), "utf8"));
-  const gazetteer = JSON.parse(readFileSync(bundledPath("gazetteer.json"), "utf8"));
-  return createResolver({ corrections, gazetteer });
+  return createResolver({ corrections: new Map(Object.entries(corrections)), gazetteer });
 }

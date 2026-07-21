@@ -1,0 +1,13 @@
+{
+  "//": "Type-checks the shipped declarations against consumer-shaped usage. Emits nothing - this package is plain JS.",
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["types/**/*.ts", "index.d.ts", "validate-positions.d.ts"]
+}

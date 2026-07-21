@@ -1,0 +1,85 @@
+/**
+ * Type-level twin of src/public-surface.test.js.
+ *
+ * That test proves the exports exist at runtime; this one proves the shipped
+ * declarations describe them correctly. It is checked by `tsc --noEmit`, not
+ * executed — the point is that it compiles.
+ *
+ * Written the way a consumer writes it, because the bug this guards against
+ * is exactly what happened in slackwater-web: a hand-written ambient
+ * declaration that drifted from the real API with nothing to catch it.
+ */
+import {
+  createBundledResolver,
+  createResolver,
+  loadCorrections,
+  validateCorrections,
+  validateAgainstStations,
+  cleanName,
+  toSlug,
+  buildLock,
+  readLock,
+  diffLock,
+  MAX_CORRECTION_KM,
+  type Station,
+  type ResolvedStation,
+  type Resolver,
+  type Corrections,
+  type GazetteerPlace,
+  type Lock,
+} from "../index.js";
+import { validatePositions } from "../validate-positions.js";
+
+const station: Station = { id: "noaa/9447659", name: "EVERETT", latitude: 47.98, longitude: -122.223 };
+
+// The README's headline example must type-check as written.
+const resolve: Resolver = createBundledResolver();
+const resolved: ResolvedStation = resolve(station);
+
+const name: string = resolved.name;
+const context: string = resolved.context;
+const cities: string[] = resolved.cities;
+const aliases: string[] = resolved.aliases;
+const corrected: boolean = resolved.corrected;
+const lat: number = resolved.latitude;
+// Optional, so it must not be assignable to a bare string.
+const verified: string | undefined = resolved.positionVerified;
+
+// The browser recipe: own corrections and gazetteer.
+const corrections: Corrections = loadCorrections("noaa/1:\n  name: Test\n");
+const gazetteer: GazetteerPlace[] = [
+  { name: "Everett", region: "WA", latitude: 47.98, longitude: -122.2 },
+];
+const own: Resolver = createResolver({ corrections, gazetteer });
+// Both options are optional.
+const bare: Resolver = createResolver();
+const noArgs: Resolver = createResolver({});
+
+const problems: string[] = [
+  ...validateCorrections(corrections),
+  ...validatePositions(corrections),
+  ...validateAgainstStations(corrections, [station]),
+  ...validateAgainstStations(corrections, null),
+  ...validateAgainstStations(corrections, [station], { maxKm: 2 }),
+];
+
+const limit: number = MAX_CORRECTION_KM;
+const cleaned: string = cleanName("EVERETT");
+const slug: string = toSlug("Friday Harbor");
+
+const lock: Lock = buildLock([station], {
+  resolve,
+  classify: (r) => (r.positionVerified ? { verdict: "verified" } : { verdict: "clear" }),
+  coastlineFingerprint: "sha256-abc",
+  thresholdM: 200,
+});
+const reread: Lock = readLock(JSON.stringify(lock));
+const diff = diffLock(reread, [station], { resolve });
+const movedIds: string[] = diff.moved.map((m) => m.id);
+const unchanged: string[] = diff.unchanged;
+
+// Reference every binding so noUnusedLocals stays on for real mistakes.
+export const surface = {
+  resolved, name, context, cities, aliases, corrected, lat, verified,
+  own, bare, noArgs, problems, limit, cleaned, slug, reread, movedIds, unchanged,
+};
