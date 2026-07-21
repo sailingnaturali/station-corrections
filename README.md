@@ -110,6 +110,22 @@ A genuinely misplaced station is hundreds of metres out. 200 m sits in the gap. 
 get a `positionVerified` reason and the audit stops reporting them — an audit that never reaches
 zero is one nobody reads.
 
+## Pinning results with a lock
+
+```bash
+npx station-corrections lock stations.json    # writes data/audit.lock.json
+npx station-corrections check stations.json   # exit 1 if a station has moved since the lock
+```
+
+`lock` pins every station's *resolved* position and audit verdict (`clear`, `verified`, or
+`ashore`) against the bundled coastline. The point isn't speed — it's change detection: NOAA can
+silently move a gauge, and without a lock that only shows up as a surprise months later. With one
+committed, `check` (the CI guard) turns it into a line in a diff the moment it happens. Because
+the lock pins the *resolved* position, a human editing `corrections.yaml` shows up as "moved"
+too — that's a data change worth reviewing, not a false alarm. `audit` reuses a pinned verdict
+for any station whose resolved position and the lock's coastline/threshold all still match,
+reporting how many were cached versus freshly checked.
+
 ## Contributing a correction
 
 Corrections are pull requests, and CI checks them mechanically: schema validity, `reason`

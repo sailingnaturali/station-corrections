@@ -1,0 +1,295 @@
+{
+  "note": "Audit results pinned per station. `station-corrections check` fails when a station has moved since this was written. Regenerate with `station-corrections lock`.",
+  "generated": "2026-07-21",
+  "coastline": "sha256-1f47607ebc1b579bd051d359f95c72854fd03f4aa99c31dfcb9965bf490009a5",
+  "thresholdM": 200,
+  "stations": {
+    "noaa/9449932": {
+      "position": [
+        48.535,
+        -122.797
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9445133": {
+      "position": [
+        47.7483,
+        -122.727
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449679": {
+      "position": [
+        48.9917,
+        -122.765
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9445958": {
+      "position": [
+        47.56169891357422,
+        -122.62300109863281
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9446807": {
+      "position": [
+        47.0983,
+        -122.895
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449424": {
+      "position": [
+        48.86271666666666,
+        -122.7585833333333
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9448614": {
+      "position": [
+        48.415000915527344,
+        -122.6520004272461
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9447659": {
+      "position": [
+        47.98,
+        -122.223
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9445016": {
+      "position": [
+        47.9267,
+        -122.617
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449880": {
+      "position": [
+        48.54527777777778,
+        -123.0125
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9447883": {
+      "position": [
+        48.105,
+        -122.57
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449828": {
+      "position": [
+        48.5817,
+        -123.17
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9443551": {
+      "position": [
+        48.187198638916016,
+        -124.0625
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449856": {
+      "position": [
+        48.48500061035156,
+        -123.08300018310547
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9442396": {
+      "position": [
+        47.91283611111111,
+        -124.6357388888889
+      ],
+      "verdict": "verified"
+    },
+    "noaa/9447973": {
+      "position": [
+        48.34280014038086,
+        -122.68579864501953
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9443090": {
+      "position": [
+        48.37072222222222,
+        -124.6015888888889
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449639": {
+      "position": [
+        48.974998474121094,
+        -123.08300018310547
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9444090": {
+      "position": [
+        48.125,
+        -123.44000244140625
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9444900": {
+      "position": [
+        48.11122222222222,
+        -122.7596777777778
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9447717": {
+      "position": [
+        48.03494444444444,
+        -122.2271944444445
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449982": {
+      "position": [
+        48.4467,
+        -122.9
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449771": {
+      "position": [
+        48.64670181274414,
+        -122.87000274658203
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9446804": {
+      "position": [
+        47.15299987792969,
+        -122.67510223388672
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9447130": {
+      "position": [
+        47.60263888888889,
+        -122.3393055555556
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9443361": {
+      "position": [
+        48.2633,
+        -124.297
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9448576": {
+      "position": [
+        48.4,
+        -122.548
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9448009": {
+      "position": [
+        48.08825,
+        -122.3223333333333
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9448682": {
+      "position": [
+        48.45830154418945,
+        -122.51300048828125
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9446484": {
+      "position": [
+        47.266700744628906,
+        -122.41329956054688
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449988": {
+      "position": [
+        48.44329833984375,
+        -122.80500030517578
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9442705": {
+      "position": [
+        48.17110061645508,
+        -124.73690032958984
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9447773": {
+      "position": [
+        48.065,
+        -122.288
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9448043": {
+      "position": [
+        48.10680555555555,
+        -122.3472777777778
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9448657": {
+      "position": [
+        48.445,
+        -122.555
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9445478": {
+      "position": [
+        47.3583,
+        -123.098
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449911": {
+      "position": [
+        48.57170104980469,
+        -122.88500213623047
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449161": {
+      "position": [
+        48.7167,
+        -122.708
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9449746": {
+      "position": [
+        48.686798095703125,
+        -123.03759765625
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9446291": {
+      "position": [
+        47.378299713134766,
+        -122.63400268554688
+      ],
+      "verdict": "clear"
+    },
+    "noaa/9446705": {
+      "position": [
+        47.18,
+        -122.675
+      ],
+      "verdict": "clear"
+    }
+  }
+}
