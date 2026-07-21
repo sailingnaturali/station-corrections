@@ -26,7 +26,7 @@ function normalizePhrase(text) {
  * ("Union" inside "Reunion Island") or when two phrases merely share a word
  * ("Port Townsend" vs "Port Angeles").
  */
-function namesOverlap(name, context) {
+export function namesOverlap(name, context) {
   const normName = normalizePhrase(name);
   const normContext = normalizePhrase(context);
   const namePattern = new RegExp(`\\b${escapeRegExp(normName)}\\b`);

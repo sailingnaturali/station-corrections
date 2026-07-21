@@ -59,6 +59,13 @@ test("a derived context never restates the name", () => {
   assert.equal(r.context, "");
 });
 
+test("a derived context is suppressed even when it only overlaps the name as a phrase", () => {
+  // Exact-equality would miss this: "Everett" inside "Everett Marina" is the
+  // same restating-the-name mistake validateCorrections rejects from a human.
+  const r = resolve({ id: "noaa/4", name: "Everett Marina", latitude: 47.979, longitude: -122.202 });
+  assert.equal(r.context, "");
+});
+
 test("aliases always include the name and the slug", () => {
   const r = resolve({ id: "noaa/1", name: "CHERRY POINT", latitude: 48.863, longitude: -122.759 });
   assert.ok(r.aliases.includes("cherry point"));

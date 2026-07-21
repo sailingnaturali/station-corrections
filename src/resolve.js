@@ -1,5 +1,6 @@
 import { cleanName } from "./clean.js";
 import { toSlug } from "./slug.js";
+import { namesOverlap } from "./corrections.js";
 
 /** Great-circle distance in kilometres. */
 function distanceKm(aLat, aLon, bLat, bLon) {
@@ -32,7 +33,9 @@ export function createResolver({ corrections = new Map(), gazetteer = [] } = {})
       const nearest = nearestPlace(station, gazetteer);
       // A context that restates the name tells the reader nothing, and is what
       // a nearest-town derivation produces at a station named for its town.
-      if (nearest && nearest.name.toLowerCase() !== name.toLowerCase()) {
+      // Same rule validateCorrections applies to a human-written context, so
+      // "Everett Marina" suppresses "near Everett, WA" too, not just an exact match.
+      if (nearest && !namesOverlap(name, nearest.name)) {
         context = `near ${nearest.name}, ${nearest.region}`;
         derived = true;
       }
