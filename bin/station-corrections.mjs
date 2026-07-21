@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs";
 import { auditStations } from "../src/audit.js";
-import { createResolver } from "../src/resolve.js";
+import { createBundledResolver } from "../src/index.js";
 import { loadCorrections, validateCorrections } from "../src/corrections.js";
+import { validatePositions } from "../src/validate-positions.js";
 import { fileURLToPath } from "node:url";
 
 const corrections = loadCorrections(
@@ -12,7 +13,7 @@ const corrections = loadCorrections(
 const [command, stationsPath] = process.argv.slice(2);
 
 if (command === "validate") {
-  const problems = validateCorrections(corrections);
+  const problems = [...validateCorrections(corrections), ...validatePositions(corrections)];
   for (const problem of problems) console.error(problem);
   console.error(problems.length ? `\n${problems.length} problem(s)` : "corrections file is valid");
   process.exit(problems.length ? 1 : 0);
@@ -44,7 +45,7 @@ if (command === "audit") {
     process.exit(1);
   }
 
-  const findings = auditStations(stations, { resolve: createResolver({ corrections }) });
+  const findings = auditStations(stations, { resolve: createBundledResolver() });
   for (const finding of findings) {
     console.log(`${finding.id.padEnd(16)} ${finding.name.padEnd(24)} ${finding.metresInland} m inland`);
     console.log(

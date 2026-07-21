@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -49,6 +49,15 @@ test("audit rejects a stations file that is a JSON object instead of an array", 
 
   assert.notEqual(status, 0);
   assert.match(stderr, /array/i);
+});
+
+test("audit resolves stations through the same bundled resolver library consumers get", () => {
+  // A hand-rolled createResolver({ corrections }) omits the gazetteer, so it
+  // resolves differently from createBundledResolver() - not visible in
+  // today's audit output (which never reads context), but a real
+  // inconsistency the CLI must not have.
+  const source = readFileSync(bin, "utf8");
+  assert.match(source, /createBundledResolver\(\)/);
 });
 
 test("audit rejects a stations file that is a JSON string instead of an array", () => {
