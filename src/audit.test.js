@@ -82,6 +82,31 @@ test("classify refuses to call an uncovered position clear", () => {
   assert.deepEqual(classify(resolved), { verdict: "unverifiable" });
 });
 
+test("classify only ever returns one of its four documented verdicts", () => {
+  // classify's JSDoc @returns union is an assertion, not a derived type: tsc
+  // checks callers against it, but nothing checks it against classify's own
+  // body, so `return { verdict: "totally-bogus-drift" }` still passes `tsc`
+  // with exit 0. This test is the only thing that catches a fifth verdict
+  // sneaking in without the JSDoc and index.d.ts's LockEntry.verdict union
+  // being updated to match.
+  const allowedVerdicts = ["clear", "verified", "ashore", "unverifiable"];
+
+  const verified = {
+    id: "noaa/9442396",
+    name: "La Push",
+    latitude: 47.91284,
+    longitude: -124.63574,
+    positionVerified: "up the Quillayute River; the coastline maps ocean only",
+  };
+  const uncovered = { id: "x", name: "X", latitude: 50.6033, longitude: -126.8117 };
+  const clear = { id: "noaa/9449880", name: "FRIDAY HARBOR", latitude: 48.546, longitude: -123.013 };
+  const ashore = { id: "noaa/8", name: "ANACORTES", latitude: 48.515, longitude: -122.62 };
+
+  for (const resolved of [verified, uncovered, clear, ashore]) {
+    assert.ok(allowedVerdicts.includes(classify(resolved).verdict));
+  }
+});
+
 test("does not report a station whose position is verified correct", () => {
   const verified = createResolver({
     corrections: loadCorrections(`
