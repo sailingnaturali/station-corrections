@@ -11,6 +11,29 @@ export function loadCorrections(yamlText) {
   return new Map(Object.entries(raw));
 }
 
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizePhrase(text) {
+  return text.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/**
+ * True when one of name/context contains the other as a whole-word phrase
+ * (case-insensitive) — "Everett" inside "Port of Everett", "Union" inside
+ * "Union Bay" — but not when the match is only a substring of a longer word
+ * ("Union" inside "Reunion Island") or when two phrases merely share a word
+ * ("Port Townsend" vs "Port Angeles").
+ */
+function namesOverlap(name, context) {
+  const normName = normalizePhrase(name);
+  const normContext = normalizePhrase(context);
+  const namePattern = new RegExp(`\\b${escapeRegExp(normName)}\\b`);
+  const contextPattern = new RegExp(`\\b${escapeRegExp(normContext)}\\b`);
+  return namePattern.test(normContext) || contextPattern.test(normName);
+}
+
 /**
  * Check a corrections map for the mistakes contributors actually make.
  * Returns human-readable problems; an empty array means valid.
@@ -33,12 +56,8 @@ export function validateCorrections(map) {
       }
     }
 
-    if (record.name && record.context) {
-      const name = record.name.toLowerCase();
-      const context = record.context.toLowerCase();
-      if (name === context || context.startsWith(`${name},`) || context === `${name} bay`) {
-        problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
-      }
+    if (record.name && record.context && namesOverlap(record.name, record.context)) {
+      problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
     }
 
     if (record.slug) {

@@ -47,6 +47,69 @@ noaa/1:
   assert.match(validateCorrections(map)[0], /context repeats the name/);
 });
 
+test("rejects a context that contains the name as a prefixed phrase", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: Everett
+  context: Everett Harbor
+`);
+  assert.match(validateCorrections(map)[0], /context repeats the name/);
+});
+
+test("rejects a context that contains the name deeper in the phrase", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: Everett
+  context: Port of Everett
+`);
+  assert.match(validateCorrections(map)[0], /context repeats the name/);
+});
+
+test("rejects a context that is the name plus a generic suffix", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: Union
+  context: Union Bay
+`);
+  assert.match(validateCorrections(map)[0], /context repeats the name/);
+});
+
+test("does not flag different places that merely share a word", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: Port Townsend
+  context: Port Angeles
+`);
+  assert.deepEqual(validateCorrections(map), []);
+});
+
+test("does not flag an unrelated context", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: Friday Harbor
+  context: San Juan Islands
+`);
+  assert.deepEqual(validateCorrections(map), []);
+});
+
+test("does not flag an unrelated hazard-style context", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: Deception Pass
+  context: Strong Currents
+`);
+  assert.deepEqual(validateCorrections(map), []);
+});
+
+test("does not flag the name appearing only as a substring of a longer word", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: Union
+  context: Reunion Island
+`);
+  assert.deepEqual(validateCorrections(map), []);
+});
+
 test("rejects duplicate slugs", () => {
   const map = loadCorrections(`
 noaa/1:
