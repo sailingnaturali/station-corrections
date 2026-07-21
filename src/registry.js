@@ -59,7 +59,7 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
         );
       }
     }
-    for (const field of ["context", "slug"]) {
+    for (const field of ["context", "slug", "source"]) {
       if (record[field] !== undefined && !isString(record[field])) {
         problems.push(`${id}: ${field} must be a string`);
       }

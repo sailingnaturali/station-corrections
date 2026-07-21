@@ -215,6 +215,10 @@ If a station looks wrong in an app built on this, a one-line PR fixes it for eve
   ODbL, clipped to the Salish Sea. Natural Earth 1:10m was measured and rejected: it reads the
   Anacortes area as water and Friday Harbor as land, generalising the San Juans away entirely.
 - **Corrections and gazetteer** — hand-written here, MIT with the package.
+- **Station identity** (names, contexts, positions) — our own facts, independently
+  obtained and human-reviewed, not a copy of any provider's station file. Only `providerId`
+  is a provider's own handle, carried because it keys their API. Field-by-field provenance and
+  the reasoning are in [PROVENANCE.md](PROVENANCE.md).
 
 Rebuild the coastline with `node scripts/build-coastline.mjs <shapefile-dir> data/coastline.geojson`
 (needs GDAL). The golden-point tests in `src/coastline.test.js` are the acceptance criterion for

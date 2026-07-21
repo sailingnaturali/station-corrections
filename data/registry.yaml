@@ -8,9 +8,15 @@
 # Keys match what chs-constituents emits ("chs-" + slug of the label), so a
 # consumer can resolve straight from the id in its own output.
 #
-# Positions and providerIds are taken from currents-vault pass frontmatter and
-# agree with chs-constituents/stations/salish-sea.json. Contexts are written
-# here.
+# These are our own facts, not a copy of a provider's station file. Names and
+# contexts are hand-written here; positions are independently derived from the
+# chs-constituents fitting pipeline and currents-vault pass frontmatter, and
+# agree with chs-constituents/stations/salish-sea.json. Only `providerId` (and
+# NOAA's `providerBin`) is the provider's own handle, carried because it keys
+# the provider's API. Every station is human-reviewed before it lands. That
+# default provenance is documented once in PROVENANCE.md; set a station's
+# `source` field only when its facts came from somewhere else (see
+# noaa-boundary-pass).
 #
 # `formerSlugs` records a slug this station used to resolve to, so a consumer
 # can redirect an old shared link instead of 404ing it. Set it in the same
@@ -175,3 +181,6 @@ noaa-boundary-pass:
   provider: noaa
   providerId: PUG1717
   providerBin: 35
+  source: >-
+    NOAA CO-OPS station PUG1717; position and bin from the NOAA station page,
+    not the CHS fitting pipeline that supplies the other gates. See PROVENANCE.md.

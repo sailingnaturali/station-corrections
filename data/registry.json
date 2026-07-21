@@ -231,6 +231,7 @@
     ],
     "provider": "noaa",
     "providerId": "PUG1717",
-    "providerBin": 35
+    "providerBin": 35,
+    "source": "NOAA CO-OPS station PUG1717; position and bin from the NOAA station page, not the CHS fitting pipeline that supplies the other gates. See PROVENANCE.md."
   }
 }
