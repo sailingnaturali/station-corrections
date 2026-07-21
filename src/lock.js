@@ -1,28 +1,14 @@
-import { REPORT_THRESHOLD_M } from "./audit.js";
-import { inlandMetres } from "./coastline.js";
-
-/**
- * Classify a resolved station the same way `auditStations` would, but as a
- * single verdict rather than a pass/fail list — the lock needs to say what
- * every station *is*, not just which ones are worth reporting.
- */
-function classify(resolved, thresholdM) {
-  if (resolved.positionVerified) return { verdict: "verified" };
-  const metresInland = inlandMetres(resolved.latitude, resolved.longitude);
-  if (metresInland <= thresholdM) return { verdict: "clear" };
-  return { verdict: "ashore", metresInland };
-}
-
 /**
  * Pin every station's resolved position and audit verdict.
  *
- * Deliberately does no IO and never touches the coastline file directly —
- * the fingerprint is computed by the caller (the CLI, with node:crypto) so
- * that importing this module never pays for hashing or parsing the 3.6 MB
- * coastline. `inlandMetres` itself still needs the parsed coastline, but
- * that cost already exists wherever `auditStations` runs.
+ * Deliberately does no IO and never imports the coastline-parsing chain
+ * (./audit.js -> ./coastline.js) itself — `classify` is injected by the
+ * caller (the CLI, which already owns the threshold and `auditStations`'s
+ * classify()) so that importing lock.js, or using diffLock/readLock alone,
+ * never pays for parsing the 3.6 MB coastline. `classify` itself still needs
+ * it, but that cost already exists wherever `auditStations` runs.
  */
-export function buildLock(stations, { resolve, coastlineFingerprint, thresholdM = REPORT_THRESHOLD_M } = {}) {
+export function buildLock(stations, { resolve, classify, coastlineFingerprint, thresholdM } = {}) {
   const entries = {};
   for (const station of stations) {
     const resolved = resolve(station);

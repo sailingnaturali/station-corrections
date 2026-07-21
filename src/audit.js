@@ -21,6 +21,18 @@ export const REPORT_THRESHOLD_M = 200;
  * bad coordinate rather than dying mid-run, so that case is still reported -
  * with `suggestion: null` - instead of propagating.
  */
+/**
+ * Classify a resolved station the same way `auditStations` would, but as a
+ * single verdict rather than a pass/fail list — used by `lock.js` to pin
+ * what a station *is*, not just which ones are worth reporting.
+ */
+export function classify(resolved, thresholdM = REPORT_THRESHOLD_M) {
+  if (resolved.positionVerified) return { verdict: "verified" };
+  const metresInland = inlandMetres(resolved.latitude, resolved.longitude);
+  if (metresInland <= thresholdM) return { verdict: "clear" };
+  return { verdict: "ashore", metresInland };
+}
+
 export function auditStations(stations, { resolve, thresholdM = REPORT_THRESHOLD_M } = {}) {
   const findings = [];
   for (const station of stations) {

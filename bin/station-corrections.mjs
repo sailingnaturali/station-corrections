@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { auditStations, REPORT_THRESHOLD_M } from "../src/audit.js";
+import { auditStations, classify, REPORT_THRESHOLD_M } from "../src/audit.js";
 import { buildLock, readLock, diffLock } from "../src/lock.js";
 import { createBundledResolver } from "../src/index.js";
 import { loadCorrections, validateCorrections } from "../src/corrections.js";
@@ -60,7 +60,20 @@ if (command === "validate") {
 
 if (command === "audit") {
   const stations = loadStations("audit", stationsPath);
-  const resolve = createBundledResolver();
+  const rawResolve = createBundledResolver();
+  // Memoized so the lockValid branch below - which resolves each station
+  // once inside diffLock and again in its own follow-up loop - does the
+  // actual resolve() work only once per station. Keyed by object identity,
+  // safe because `stations` is a stable array reused across both passes.
+  const resolvedCache = new Map();
+  const resolve = (station) => {
+    let resolved = resolvedCache.get(station);
+    if (!resolved) {
+      resolved = rawResolve(station);
+      resolvedCache.set(station, resolved);
+    }
+    return resolved;
+  };
 
   // Reuse a pinned verdict for a station whose resolved position and the
   // audit inputs (coastline, threshold) all still match the lock. Any
@@ -80,7 +93,6 @@ if (command === "audit") {
   if (lockValid) {
     const unchanged = new Set(diffLock(lock, stations, { resolve }).unchanged);
     const toCheck = [];
-    findings = [];
     for (const station of stations) {
       const resolved = resolve(station);
       if (unchanged.has(resolved.id) && lock.stations[resolved.id].verdict !== "ashore") {
@@ -114,7 +126,7 @@ if (command === "audit") {
 if (command === "lock") {
   const stations = loadStations("lock", stationsPath);
   const resolve = createBundledResolver();
-  const lock = buildLock(stations, { resolve, coastlineFingerprint: coastlineFingerprint(), thresholdM: REPORT_THRESHOLD_M });
+  const lock = buildLock(stations, { resolve, classify, coastlineFingerprint: coastlineFingerprint(), thresholdM: REPORT_THRESHOLD_M });
   writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
   console.log(`wrote ${lockPath} - ${stations.length} station(s)`);
   process.exit(0);
