@@ -155,3 +155,71 @@ noaa/1:
 `);
   assert.match(validateCorrections(map)[0], /positionVerified/);
 });
+
+test("reports a malformed position instead of throwing", () => {
+  const map = loadCorrections(`
+noaa/1:
+  position: 5
+  reason: typo
+`);
+  assert.doesNotThrow(() => validateCorrections(map));
+  assert.match(validateCorrections(map)[0], /position/);
+});
+
+test("reports a position with the wrong number of elements instead of throwing", () => {
+  const map = loadCorrections(`
+noaa/1:
+  position: [48.5]
+  reason: typo
+`);
+  assert.match(validateCorrections(map)[0], /position/);
+});
+
+test("reports a position with non-numeric elements instead of throwing", () => {
+  const map = loadCorrections(`
+noaa/1:
+  position: ["a", "b"]
+  reason: typo
+`);
+  assert.match(validateCorrections(map)[0], /position/);
+});
+
+test("reports a non-string name instead of throwing", () => {
+  const map = loadCorrections(`
+noaa/1:
+  name: 5
+`);
+  assert.doesNotThrow(() => validateCorrections(map));
+  assert.match(validateCorrections(map)[0], /name/);
+});
+
+for (const field of ["context", "slug", "reason", "positionVerified"]) {
+  test(`reports a non-string ${field} instead of throwing`, () => {
+    const map = loadCorrections(`
+noaa/1:
+  ${field}: 5
+`);
+    assert.doesNotThrow(() => validateCorrections(map));
+    assert.match(validateCorrections(map)[0], new RegExp(field));
+  });
+}
+
+for (const field of ["aliases", "cities"]) {
+  test(`reports a non-array ${field} instead of throwing`, () => {
+    const map = loadCorrections(`
+noaa/1:
+  ${field}: 5
+`);
+    assert.doesNotThrow(() => validateCorrections(map));
+    assert.match(validateCorrections(map)[0], new RegExp(field));
+  });
+
+  test(`reports a ${field} array with a non-string element instead of throwing`, () => {
+    const map = loadCorrections(`
+noaa/1:
+  ${field}: [Everett, 5]
+`);
+    assert.doesNotThrow(() => validateCorrections(map));
+    assert.match(validateCorrections(map)[0], new RegExp(field));
+  });
+}

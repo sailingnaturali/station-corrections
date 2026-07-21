@@ -34,8 +34,16 @@ function namesOverlap(name, context) {
   return namePattern.test(normContext) || contextPattern.test(normName);
 }
 
+const isString = (v) => typeof v === "string";
+const isStringArray = (v) => Array.isArray(v) && v.every(isString);
+const isValidPosition = (v) =>
+  Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === "number");
+
 /**
  * Check a corrections map for the mistakes contributors actually make.
+ * This file is hand-edited and PR-able, so malformed input (wrong type, not
+ * just a bad value) is an expected failure mode and must be reported, never
+ * thrown - every field is type-checked before use.
  * Returns human-readable problems; an empty array means valid.
  */
 export function validateCorrections(map) {
@@ -43,33 +51,48 @@ export function validateCorrections(map) {
   const slugs = new Map();
 
   for (const [id, record] of map) {
-    if (record.position) {
-      const [lat, lon] = record.position;
-      if (!record.reason) {
-        problems.push(`${id}: position is corrected but no reason is given`);
+    for (const field of ["name", "context", "slug", "reason", "positionVerified"]) {
+      if (record[field] !== undefined && !isString(record[field])) {
+        problems.push(`${id}: ${field} must be a string`);
       }
-      if (typeof lat !== "number" || lat < -90 || lat > 90) {
-        problems.push(`${id}: latitude ${lat} is out of range`);
+    }
+    for (const field of ["aliases", "cities"]) {
+      if (record[field] !== undefined && !isStringArray(record[field])) {
+        problems.push(`${id}: ${field} must be an array of strings`);
       }
-      if (typeof lon !== "number" || lon < -180 || lon > 180) {
-        problems.push(`${id}: longitude ${lon} is out of range`);
+    }
+
+    if (record.position !== undefined) {
+      if (!isValidPosition(record.position)) {
+        problems.push(`${id}: position must be a [latitude, longitude] array of two numbers`);
+      } else {
+        const [lat, lon] = record.position;
+        if (!isString(record.reason) || record.reason.trim() === "") {
+          problems.push(`${id}: position is corrected but no reason is given`);
+        }
+        if (lat < -90 || lat > 90) {
+          problems.push(`${id}: latitude ${lat} is out of range`);
+        }
+        if (lon < -180 || lon > 180) {
+          problems.push(`${id}: longitude ${lon} is out of range`);
+        }
       }
     }
 
     if (record.positionVerified !== undefined) {
-      if (record.position) {
+      if (record.position !== undefined) {
         problems.push(`${id}: position and positionVerified cannot both be set - a position cannot be both wrong and confirmed right`);
       }
-      if (typeof record.positionVerified !== "string" || record.positionVerified.trim() === "") {
+      if (!isString(record.positionVerified) || record.positionVerified.trim() === "") {
         problems.push(`${id}: positionVerified must be a non-empty string`);
       }
     }
 
-    if (record.name && record.context && namesOverlap(record.name, record.context)) {
+    if (isString(record.name) && isString(record.context) && namesOverlap(record.name, record.context)) {
       problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
     }
 
-    if (record.slug) {
+    if (record.slug !== undefined && isString(record.slug)) {
       if (!/^[a-z0-9-]+$/.test(record.slug)) {
         problems.push(`${id}: slug "${record.slug}" must be lowercase letters, digits and hyphens`);
       }
