@@ -113,13 +113,34 @@ if (command === "audit") {
   }
   const lockValid = lock && lock.coastline === coastlineFingerprint() && lock.thresholdM === REPORT_THRESHOLD_M;
 
+  // Partition out-of-coverage stations first, before the cached/checked
+  // split below. auditStations calls inlandMetres directly, which returns 0
+  // outside the clipped coastline - so a station out there was never really
+  // evaluated for ashore-ness. It must land in exactly one summary bucket
+  // (not checked), never also in cached or checked - and the "X of Y ashore"
+  // line's denominator must only ever be stations that were actually
+  // evaluated, or "Y - X" silently re-absorbs an unverifiable station as
+  // "clear". That is the same gap classify() closed (see src/audit.js) for
+  // per-station verdicts; this is the CLI's own summary making the same
+  // mistake at the aggregate level.
+  const inCoverage = [];
+  let outsideCoverage = 0;
+  for (const station of stations) {
+    const resolved = resolve(station);
+    if (isWithinCoverage(resolved.latitude, resolved.longitude)) {
+      inCoverage.push(station);
+    } else {
+      outsideCoverage++;
+    }
+  }
+
   let findings;
   let cached = 0;
   let checked;
   if (lockValid) {
-    const unchanged = new Set(diffLock(lock, stations, { resolve }).unchanged);
+    const unchanged = new Set(diffLock(lock, inCoverage, { resolve }).unchanged);
     const toCheck = [];
-    for (const station of stations) {
+    for (const station of inCoverage) {
       const resolved = resolve(station);
       if (unchanged.has(resolved.id) && lock.stations[resolved.id].verdict !== "ashore") {
         cached++;
@@ -132,8 +153,8 @@ if (command === "audit") {
     findings = auditStations(toCheck, { resolve });
     checked = toCheck.length;
   } else {
-    findings = auditStations(stations, { resolve });
-    checked = stations.length;
+    findings = auditStations(inCoverage, { resolve });
+    checked = inCoverage.length;
   }
 
   for (const finding of findings) {
@@ -144,19 +165,12 @@ if (command === "audit") {
         : "  nearest water: none found within range - needs a human look",
     );
   }
-  // auditStations calls inlandMetres directly, which returns 0 outside the
-  // clipped coastline - so an out-of-coverage station reads as "clear" and
-  // never appears in findings at all. That is the same gap classify() closed
-  // (see src/audit.js): report it here, in the CLI's own summary, rather than
-  // letting "no findings" pass as "everything was checked".
-  let outsideCoverage = 0;
-  for (const station of stations) {
-    const resolved = resolve(station);
-    if (!isWithinCoverage(resolved.latitude, resolved.longitude)) outsideCoverage++;
-  }
 
+  // cached + checked + outsideCoverage is a clean partition of stations.length
+  // - every station lands in exactly one bucket - and the ashore line below
+  // is only ever a fraction of cached + checked, never of the full input.
   console.log(`\n${cached} cached, ${checked} checked`);
-  console.log(`${findings.length} of ${stations.length} ashore`);
+  console.log(`${findings.length} of ${cached + checked} ashore`);
   console.log(`${outsideCoverage} station(s) outside coastline coverage - not checked`);
   process.exit(0);
 }

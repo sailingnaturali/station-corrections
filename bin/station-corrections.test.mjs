@@ -232,8 +232,32 @@ test("audit reports stations outside coastline coverage as not checked, not clea
       rmSync(lockPath, { force: true });
       const { status, stdout } = run(["audit", path]);
       assert.equal(status, 0);
-      // The in-coverage water station is clear and not counted as ashore.
-      assert.match(stdout, /0 of 2 ashore/);
+      // The in-coverage water station is clear and not counted as ashore -
+      // and the out-of-coverage station isn't folded into the denominator
+      // either, since it was never evaluated for ashore-ness at all.
+      assert.match(stdout, /0 of 1 ashore/);
+      assert.match(stdout, /1 station.* outside coastline coverage - not checked/i);
+    });
+  });
+});
+
+// The two coverage tests above both rmSync the lock first, forcing the
+// uncached path - so the interaction that actually broke (an out-of-coverage
+// station carrying a *cached* "unverifiable" verdict from a real lock) was
+// never exercised. classify() pins "unverifiable" for it, which is not
+// "ashore", so the old cache condition ("unchanged && verdict !== ashore")
+// happily cached it - while a second loop also counted it in
+// outsideCoverage. Same station, two buckets, and the "X of Y ashore" line's
+// denominator quietly re-absorbed it into "checked".
+test("a locked, unchanged station outside coastline coverage is cached nowhere - only in the not-checked bucket", () => {
+  withRealLockBackup(() => {
+    withFixtureStations([WATER_STATION, OUT_OF_COVERAGE_STATION], (path) => {
+      run(["lock", path]);
+      const { status, stdout } = run(["audit", path]);
+      assert.equal(status, 0);
+
+      assert.match(stdout, /1 cached, 0 checked/);
+      assert.match(stdout, /0 of 1 ashore/);
       assert.match(stdout, /1 station.* outside coastline coverage - not checked/i);
     });
   });
