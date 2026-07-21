@@ -146,3 +146,51 @@ test("corrections with no overlap produce no cross-file problems", () => {
   const corrections = loadCorrections("noaa/1:\n  name: Everett\n  slug: everett\n");
   assert.deepEqual(validateRegistry(registry, { corrections }), []);
 });
+
+test("two registry entries with derived (unset) slugs that collide are rejected", () => {
+  const problems = validateRegistry(loadRegistry(`
+chs-a:
+  name: Friday Harbor
+  position: [48.5, -123]
+  provider: chs
+  providerId: a
+chs-b:
+  name: Friday Harbor
+  position: [48.5, -123]
+  provider: chs
+  providerId: b
+`));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /duplicate slug "friday-harbor"/);
+});
+
+test("a registry entry's derived slug colliding with a corrections entry's explicit slug is rejected", () => {
+  const registry = loadRegistry(`
+chs-dodd-narrows:
+  name: Nanaimo
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: abc
+`);
+  const corrections = loadCorrections("noaa/1:\n  name: Somewhere Else\n  slug: nanaimo\n");
+  const problems = validateRegistry(registry, { corrections });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /collides with chs-dodd-narrows/);
+});
+
+test("a registry entry with no slug and no name does not throw or register a bogus slug", () => {
+  const registry = loadRegistry(`
+chs-a:
+  position: [49, -123]
+  provider: chs
+  providerId: a
+chs-b:
+  name: undefined
+  position: [49, -123]
+  provider: chs
+  providerId: b
+`);
+  const problems = validateRegistry(registry);
+  assert.ok(problems.some((p) => /chs-a: name is required/.test(p)));
+  assert.ok(!problems.some((p) => /duplicate slug/.test(p)));
+});

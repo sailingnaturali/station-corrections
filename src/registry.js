@@ -1,5 +1,6 @@
 import { parse } from "yaml";
 import { namesOverlap } from "./names.js";
+import { toSlug } from "./slug.js";
 
 /**
  * Stations whose identity this package owns.
@@ -78,14 +79,28 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
       problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
     }
 
-    if (record.slug !== undefined && isString(record.slug)) {
-      if (!/^[a-z0-9-]+$/.test(record.slug)) {
-        problems.push(`${id}: slug "${record.slug}" must be lowercase letters, digits and hyphens`);
+    if (record.slug !== undefined && isString(record.slug) && !/^[a-z0-9-]+$/.test(record.slug)) {
+      problems.push(`${id}: slug "${record.slug}" must be lowercase letters, digits and hyphens`);
+    }
+
+    // ponytail: resolve.js derives a routable slug (override.slug ?? toSlug(name))
+    // whenever a record sets none, so an unset slug still ends up live and must
+    // be guarded the same as an explicit one. Only compute it when there's a
+    // usable name (or an explicit slug already) - a record failing the
+    // required-name check has no real name to derive from, and toSlug("undefined")
+    // would register a bogus collision target for a problem already reported above.
+    const effectiveSlug =
+      record.slug !== undefined && isString(record.slug)
+        ? record.slug
+        : isNonEmptyString(record.name)
+          ? toSlug(record.name)
+          : undefined;
+
+    if (effectiveSlug !== undefined) {
+      if (slugs.has(effectiveSlug)) {
+        problems.push(`${id}: duplicate slug "${effectiveSlug}", also used by ${slugs.get(effectiveSlug)}`);
       }
-      if (slugs.has(record.slug)) {
-        problems.push(`${id}: duplicate slug "${record.slug}", also used by ${slugs.get(record.slug)}`);
-      }
-      slugs.set(record.slug, id);
+      slugs.set(effectiveSlug, id);
     }
 
     if (corrections.has(id)) {
@@ -93,6 +108,10 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
     }
   }
 
+  // Corrections side deliberately checks only the *explicit* slug, not the
+  // effective one - the corrections overlay has the identical derived-slug gap
+  // (validateCorrections never closes it) and must keep behaving the same
+  // after this change. Only the registry side gets effective-slug checking.
   for (const [id, record] of corrections) {
     if (record.slug !== undefined && isString(record.slug) && slugs.has(record.slug)) {
       problems.push(`${id}: slug "${record.slug}" collides with ${slugs.get(record.slug)} in the registry`);
