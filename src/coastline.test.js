@@ -1,6 +1,24 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { isOnLand, inlandMetres, nearestWater } from "./coastline.js";
+
+test("the bundled coastline has not been generalised down to a handful of shapes", () => {
+  // The 7 golden points below only prove those exact coordinates. A coarser
+  // rebuild (the exact Natural Earth failure this package was built to
+  // avoid - see README "Data and licences") could keep all 7 correct while
+  // merging away small islands and inlets everywhere else. Feature count is
+  // a cheap proxy for that: the built coastline has 4,318 features: a large
+  // drop means an over-simplified rebuild, not a golden-point regression.
+  const coastline = JSON.parse(
+    readFileSync(fileURLToPath(new URL("../data/coastline.geojson", import.meta.url)), "utf8"),
+  );
+  assert.ok(
+    coastline.features.length >= 4000,
+    `expected at least ~4,000 features, got ${coastline.features.length}`,
+  );
+});
 
 // Golden points with MEASURED inland distances against the built coastline.
 // Natural Earth 1:10m gets several of these wrong, which is why it was rejected.
