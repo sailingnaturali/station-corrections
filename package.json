@@ -1,6 +1,6 @@
 {
   "name": "@sailingnaturali/station-corrections",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Friendly names, search aliases and corrected positions for tide and current stations",
   "main": "src/index.js",
   "scripts": {
