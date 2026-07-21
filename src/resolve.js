@@ -14,27 +14,50 @@ function distanceKm(aLat, aLon, bLat, bLon) {
 }
 
 /**
+ * Split a cleaned name on NOAA's comma-qualifier convention: "Friday Harbor,
+ * San Juan Island" is the place, then where it is. Later segments (Bremerton
+ * often carries two) join with a middot rather than being discarded.
+ *
+ * "Puget Sound" is dropped rather than kept as context - it is true of nearly
+ * everything this package covers and tells a local nothing.
+ */
+function splitQualifier(cleaned) {
+  const [primary, ...rest] = cleaned.split(",").map((part) => part.trim());
+  const context = rest
+    .filter(Boolean)
+    .filter((part) => part.toLowerCase() !== "puget sound")
+    .join(" · ");
+  return { primary, context };
+}
+
+/**
  * Build a resolver over a corrections map and a gazetteer.
  *
  * Resolution order, highest first:
  *   1. curated override — anything in the corrections file wins
- *   2. derived fallback — nearest gazetteer place, so context is never empty
- *   3. source data — the provider's own name, cleaned
+ *   2. source data — the provider's own name, cleaned and, if it carries a
+ *      comma qualifier, split into a name and a context
+ *   3. derived fallback — nearest gazetteer place, so context is never empty
  */
 export function createResolver({ corrections = new Map(), gazetteer = [] } = {}) {
   return function resolve(station) {
     const override = corrections.get(station.id) ?? {};
-    const name = override.name ?? cleanName(station.name);
+    const split = splitQualifier(cleanName(station.name));
+    const name = override.name ?? split.primary;
     const slug = override.slug ?? toSlug(name);
 
+    // A context that restates the name tells the reader nothing - true whether
+    // it comes from the raw name's own qualifier or from a nearest-town
+    // derivation. Same rule validateCorrections applies to a human-written
+    // context, so "Everett Marina" suppresses "near Everett, WA" too, not just
+    // an exact match.
     let context = override.context ?? "";
     let derived = false;
+    if (!context && split.context && !namesOverlap(name, split.context)) {
+      context = split.context;
+    }
     if (!context) {
       const nearest = nearestPlace(station, gazetteer);
-      // A context that restates the name tells the reader nothing, and is what
-      // a nearest-town derivation produces at a station named for its town.
-      // Same rule validateCorrections applies to a human-written context, so
-      // "Everett Marina" suppresses "near Everett, WA" too, not just an exact match.
       if (nearest && !namesOverlap(name, nearest.name)) {
         context = `near ${nearest.name}, ${nearest.region}`;
         derived = true;

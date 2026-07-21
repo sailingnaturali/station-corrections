@@ -99,3 +99,104 @@ test("does not crash on a non-string alias in the corrections map", () => {
   const badResolve = createResolver({ corrections: badCorrections, gazetteer: [] });
   assert.doesNotThrow(() => badResolve({ id: "noaa/9", name: "Test", latitude: 48, longitude: -122 }));
 });
+
+// NOAA station names carry their location as a trailing comma qualifier:
+// "Friday Harbor, San Juan Island". Uncurated stations with no gazetteer
+// override should split on that comma rather than leaving context empty.
+const splitResolve = createResolver({ corrections, gazetteer });
+
+test("a comma-qualified name splits into a name and a context", () => {
+  const r = splitResolve({
+    id: "noaa/100",
+    name: "Friday Harbor, San Juan Island",
+    latitude: 48.545,
+    longitude: -123.012,
+  });
+  assert.equal(r.name, "Friday Harbor");
+  assert.equal(r.context, "San Juan Island");
+  assert.equal(r.derived, false);
+});
+
+test("extra comma segments join with a middot", () => {
+  const r = splitResolve({
+    id: "noaa/101",
+    name: "Bremerton, Sinclair Inlet, Port Orchard",
+    latitude: 47.5617,
+    longitude: -122.623,
+  });
+  assert.equal(r.name, "Bremerton");
+  assert.equal(r.context, "Sinclair Inlet · Port Orchard");
+});
+
+test("abbreviations expand on both sides of the split", () => {
+  const r = splitResolve({
+    id: "noaa/102",
+    name: "Hanbury Point, Mosquito Pass, San Juan I.",
+    latitude: 48.55,
+    longitude: -123.02,
+  });
+  assert.equal(r.name, "Hanbury Point");
+  assert.equal(r.context, "Mosquito Pass · San Juan Island");
+});
+
+test("a parenthetical in the name survives the split", () => {
+  const r = splitResolve({
+    id: "noaa/103",
+    name: "SEATTLE (Madison St.), Elliott Bay",
+    latitude: 47.6026,
+    longitude: -122.3393,
+  });
+  assert.equal(r.name, "Seattle (Madison St.)");
+  assert.equal(r.context, "Elliott Bay");
+});
+
+test("a trailing Puget Sound qualifier is dropped, not used as context", () => {
+  const r = splitResolve({
+    id: "noaa/104",
+    name: "Point Roberts, Puget Sound",
+    // Close to the "Forks" gazetteer entry so a dropped split falls through
+    // to the derived fallback instead of leaving context empty.
+    latitude: 47.95,
+    longitude: -124.385,
+  });
+  assert.equal(r.name, "Point Roberts");
+  assert.equal(r.context, "near Forks, WA");
+  assert.equal(r.derived, true);
+});
+
+test("a split context that restates the name is dropped, not emitted as a tautology", () => {
+  const r = splitResolve({
+    id: "noaa/105",
+    name: "Union, Union Bay",
+    // Close to the "Everett" gazetteer entry so a dropped split falls
+    // through to the derived fallback instead of leaving context empty.
+    latitude: 47.979,
+    longitude: -122.202,
+  });
+  assert.equal(r.name, "Union");
+  assert.notEqual(r.context, "Union Bay");
+  assert.equal(r.context, "near Everett, WA");
+  assert.equal(r.derived, true);
+});
+
+test("a curated name and context still win outright over a comma-qualified raw name", () => {
+  const curatedForSplit = loadCorrections(`
+noaa/106:
+  name: Curated Name
+  context: Curated Context
+`);
+  const resolveWithCuration = createResolver({ corrections: curatedForSplit, gazetteer: [] });
+  const r = resolveWithCuration({
+    id: "noaa/106",
+    name: "Raw Name, Raw Qualifier",
+    latitude: 48,
+    longitude: -122,
+  });
+  assert.equal(r.name, "Curated Name");
+  assert.equal(r.context, "Curated Context");
+});
+
+test("a plain name with no comma is unaffected by the split", () => {
+  const r = splitResolve({ id: "noaa/107", name: "Everett", latitude: 47.979, longitude: -122.202 });
+  assert.equal(r.name, "Everett");
+});
