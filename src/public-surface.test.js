@@ -20,6 +20,7 @@ const COASTLINE_DEPENDENT_MODULES = new Set(["audit.js", "coastline.js", "valida
 /** Named exports that are internal implementation details, not public API, even though their module is otherwise public. */
 const INTERNAL_EXPORTS = new Set([
   "namesOverlap", // names.js: helper shared by resolve.js and validateCorrections, not a consumer-facing utility
+  "sharesMeaningfulWord", // names.js: helper used only by validateAgainstStations, not a consumer-facing utility
   "distanceKm", // distance.js: shared leaf so resolve.js and corrections.js need not import each other; not API anyone asked for
 ]);
 

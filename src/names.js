@@ -28,3 +28,35 @@ export function namesOverlap(name, context) {
   const contextPattern = new RegExp(`\\b${escapeRegExp(normContext)}\\b`);
   return namePattern.test(normContext) || contextPattern.test(normName);
 }
+
+/**
+ * Generic geographic and function words common enough that two unrelated
+ * stations sharing one of them proves nothing - "Point" is in a third of
+ * this dataset's names. Excluded so `sharesMeaningfulWord` only fires on a
+ * word distinctive enough to mean two names are about the same place.
+ */
+const STOP_WORDS = new Set([
+  "the", "a", "an", "of", "and",
+  "bay", "point", "island", "channel", "inlet", "harbor", "harbour",
+  "sound", "strait", "passage", "narrows", "cove", "creek", "river",
+  "entrance", "ent", "st", "pt",
+]);
+
+function meaningfulWords(text) {
+  return normalizePhrase(text)
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word && !STOP_WORDS.has(word));
+}
+
+/**
+ * True when name and otherName share at least one word that isn't a generic
+ * stop word. Catches a curated `name` that describes a completely different
+ * place than the station it's attached to - issue #6, where `name: Anacortes`
+ * was pinned onto a Swinomish Channel gauge and the two names share nothing
+ * once "Channel" and "Bay" are set aside as noise.
+ */
+export function sharesMeaningfulWord(name, otherName) {
+  const words = meaningfulWords(name);
+  const otherWords = new Set(meaningfulWords(otherName));
+  return words.some((word) => otherWords.has(word));
+}

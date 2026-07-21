@@ -1,6 +1,6 @@
 import { parse } from "yaml";
 import { distanceKm } from "./distance.js";
-import { namesOverlap } from "./names.js";
+import { namesOverlap, sharesMeaningfulWord } from "./names.js";
 
 /**
  * Parse the corrections file into a Map keyed by provider station ID.
@@ -101,8 +101,7 @@ export function validateCorrections(map) {
 export const MAX_CORRECTION_KM = 5;
 
 /**
- * Check that each corrected position is a plausible distance from the one the
- * provider published.
+ * Check each correction against the published station it claims to describe.
  *
  * Kept separate from `validateCorrections` because it needs something that
  * file cannot know: the published station list. Callers that have it (CI,
@@ -111,6 +110,15 @@ export const MAX_CORRECTION_KM = 5;
  * does not record the published position itself — duplicating upstream data
  * means carrying a copy that drifts silently the moment the provider moves a
  * gauge, and the lock already exists to make that move visible.
+ *
+ * Two checks, both needing the same lookup:
+ *  - a corrected `position` is a plausible distance from the published one
+ *    (a fix, not a relocation);
+ *  - a curated `name` shares at least one meaningful word with the published
+ *    name. This is the issue #6 bug: `name: Anacortes` curated onto a
+ *    Swinomish Channel gauge, a station that is not Anacortes and shares no
+ *    word with it. A curated name replaces the source name outright, so
+ *    nothing else would ever catch it being attached to the wrong station.
  *
  * Stations absent from `stations` are skipped rather than reported. A caller
  * may legitimately validate against a partial list (tides but not currents),
@@ -126,9 +134,16 @@ export function validateAgainstStations(map, stations, { maxKm = MAX_CORRECTION_
   }
 
   for (const [id, record] of map) {
-    if (!isValidPosition(record.position)) continue;
     const station = published.get(id);
     if (!station) continue;
+
+    if (isString(record.name) && isString(station.name) && !sharesMeaningfulWord(record.name, station.name)) {
+      problems.push(
+        `${id}: name "${record.name}" shares no meaningful word with the published name "${station.name}" — check this correction is attached to the right station`,
+      );
+    }
+
+    if (!isValidPosition(record.position)) continue;
     if (typeof station.latitude !== "number" || typeof station.longitude !== "number") continue;
 
     const [lat, lon] = record.position;
