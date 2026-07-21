@@ -9,7 +9,7 @@ noaa/9447659:
   slug: everett
   cities: [Everett, Marysville]
   aliases: [port gardner]
-noaa/9448682:
+noaa/8:
   name: Anacortes
   context: Guemes Channel
   slug: anacortes
@@ -20,7 +20,7 @@ noaa/9448682:
 test("loads records keyed by station id", () => {
   const map = loadCorrections(VALID);
   assert.equal(map.get("noaa/9447659").context, "Port Gardner");
-  assert.deepEqual(map.get("noaa/9448682").position, [48.5163, -122.6142]);
+  assert.deepEqual(map.get("noaa/8").position, [48.5163, -122.6142]);
 });
 
 test("accepts a valid file", () => {

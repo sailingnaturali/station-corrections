@@ -73,3 +73,34 @@ test("no name is left shouting", () => {
     assert.notEqual(letters, letters.toUpperCase(), `${name} still shouts`);
   }
 });
+
+// Stations the source data already describes well enough to need no override.
+// Curating one anyway is not a neutral act: noaa/9448682 carried a hand-written
+// `name: Anacortes` for a gauge that is neither in Anacortes nor named after
+// it, and because a curated override wins outright, the correct source name
+// was thrown away and the wrong one shipped to a deployed app.
+//
+// Pinned here so a future override that re-breaks one of these fails a test
+// rather than a URL.
+const RESOLVES_UNCURATED = [
+  [
+    "noaa/9448682",
+    "Swinomish Channel ent., Padilla Bay",
+    48.4583,
+    -122.513,
+    { name: "Swinomish Channel Entrance", context: "Padilla Bay", slug: "swinomish-channel-entrance" },
+  ],
+];
+
+for (const [id, raw, lat, lon, expected] of RESOLVES_UNCURATED) {
+  test(`${raw} resolves correctly with no correction`, () => {
+    const r = resolve({ id, name: raw, latitude: lat, longitude: lon });
+    assert.equal(r.name, expected.name);
+    assert.equal(r.context, expected.context);
+    assert.equal(r.slug, expected.slug);
+    // Not `derived` - this context comes from the station's own qualifier, so
+    // it is source data rather than a nearest-town guess.
+    assert.equal(r.derived, false);
+    assert.equal(corrections.has(id), false, `${id} has an override again`);
+  });
+}

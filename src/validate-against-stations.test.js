@@ -52,7 +52,7 @@ test("skips records with no position, and malformed ones validateCorrections own
   const map = loadCorrections(`
 noaa/9447659:
   name: Everett
-noaa/9448682:
+noaa/8:
   position: 5
   reason: nonsense
 `);

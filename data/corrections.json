@@ -12,18 +12,6 @@
       "everett marina"
     ]
   },
-  "noaa/9448682": {
-    "name": "Anacortes",
-    "context": "Guemes Channel",
-    "slug": "anacortes",
-    "cities": [
-      "Anacortes"
-    ],
-    "aliases": [
-      "guemes channel",
-      "cap sante"
-    ]
-  },
   "noaa/9442396": {
     "name": "La Push",
     "context": "Quillayute River",

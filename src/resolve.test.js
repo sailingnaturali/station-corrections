@@ -9,7 +9,7 @@ noaa/9447659:
   context: Port Gardner
   slug: everett
   cities: [Everett]
-noaa/9448682:
+noaa/8:
   name: Anacortes
   context: Guemes Channel
   position: [48.5163, -122.6142]
@@ -33,7 +33,7 @@ test("a curated override wins outright", () => {
 });
 
 test("a corrected position replaces the published one", () => {
-  const r = resolve({ id: "noaa/9448682", name: "ANACORTES", latitude: 48.51, longitude: -122.61 });
+  const r = resolve({ id: "noaa/8", name: "ANACORTES", latitude: 48.51, longitude: -122.61 });
   assert.equal(r.latitude, 48.5163);
   assert.equal(r.longitude, -122.6142);
   assert.equal(r.corrected, true);

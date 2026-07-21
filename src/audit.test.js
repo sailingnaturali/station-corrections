@@ -13,7 +13,7 @@ test("reports a station whose published position is ashore", () => {
   // only ~90 m inland here - under threshold - so it wouldn't be reported;
   // swapped in a coordinate that actually clears the bar.)
   const findings = auditStations(
-    [{ id: "noaa/9448682", name: "ANACORTES", latitude: 48.515, longitude: -122.62 }],
+    [{ id: "noaa/8", name: "ANACORTES", latitude: 48.515, longitude: -122.62 }],
     { resolve },
   );
   assert.equal(findings.length, 1);
@@ -36,13 +36,13 @@ test("does not re-report a station that has already been corrected", () => {
   // respect that rather than the pre-correction position tested above.
   const corrected = createResolver({
     corrections: loadCorrections(`
-noaa/9448682:
+noaa/8:
   position: [48.5108, -122.6098]
   reason: inland
 `),
   });
   const findings = auditStations(
-    [{ id: "noaa/9448682", name: "ANACORTES", latitude: 48.515, longitude: -122.62 }],
+    [{ id: "noaa/8", name: "ANACORTES", latitude: 48.515, longitude: -122.62 }],
     { resolve: corrected },
   );
   assert.deepEqual(findings, []);
