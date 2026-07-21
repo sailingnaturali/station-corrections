@@ -49,7 +49,7 @@ export function createResolver({ corrections = new Map(), gazetteer = [] } = {})
       ...(override.aliases ?? []).filter((a) => typeof a === "string").map((a) => a.toLowerCase()),
     ]);
 
-    return {
+    const result = {
       id: station.id,
       name,
       context,
@@ -60,8 +60,11 @@ export function createResolver({ corrections = new Map(), gazetteer = [] } = {})
       longitude: position[1],
       corrected: Boolean(override.position),
       derived,
-      positionVerified: override.positionVerified,
     };
+    // Only present when the correction sets it - an always-there
+    // `positionVerified: undefined` key is an output no one asked for.
+    if (override.positionVerified !== undefined) result.positionVerified = override.positionVerified;
+    return result;
   };
 }
 

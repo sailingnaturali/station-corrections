@@ -79,7 +79,7 @@ noaa/9442396:
 | `cities` | Nearest settlements, for search. Not for display. |
 | `aliases` | What someone might type. Local names, former names, misspellings. |
 | `position` | A corrected `[lat, lon]`. Requires `reason`. |
-| `positionVerified` | A reason the published position is *right* despite reading inland. Mutually exclusive with `position`. |
+| `positionVerified` | A reason the published position is *right* despite reading inland. Mutually exclusive with `position`. Passed straight through to the resolved object when set, and omitted from it otherwise. |
 
 **Context must never restate the name.** `Everett · Everett` is what a nearest-town derivation
 produces at a station named for its town, and it tells the reader nothing. Validation rejects a
@@ -113,7 +113,8 @@ zero is one nobody reads.
 ## Contributing a correction
 
 Corrections are pull requests, and CI checks them mechanically: schema validity, `reason`
-present whenever `position` is, unique slugs, and no context that restates its name.
+present whenever `position` is, unique slugs, no context that restates its name, and that a
+corrected `position` actually lands in water against the bundled coastline.
 
 If a station looks wrong in an app built on this, a one-line PR fixes it for everyone.
 

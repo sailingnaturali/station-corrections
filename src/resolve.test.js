@@ -72,6 +72,25 @@ test("aliases always include the name and the slug", () => {
   assert.ok(r.aliases.includes("cherry-point"));
 });
 
+test("omits positionVerified from the resolved object when not set", () => {
+  const r = resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
+  assert.equal("positionVerified" in r, false);
+});
+
+test("includes positionVerified on the resolved object when set", () => {
+  const verified = loadCorrections(`
+noaa/1:
+  positionVerified: "up the river; the coastline maps ocean only"
+`);
+  const r = createResolver({ corrections: verified, gazetteer: [] })({
+    id: "noaa/1",
+    name: "Test",
+    latitude: 48,
+    longitude: -122,
+  });
+  assert.equal(r.positionVerified, "up the river; the coastline maps ocean only");
+});
+
 test("does not crash on a non-string alias in the corrections map", () => {
   // validateCorrections rejects this in the shipped corrections.yaml, but
   // createResolver is also usable directly with a hand-built Map that never
