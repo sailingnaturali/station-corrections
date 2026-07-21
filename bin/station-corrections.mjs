@@ -80,7 +80,7 @@ if (command === "validate") {
   if (!stations) {
     console.error("note: no stations file given - skipping the distance-from-published check");
   }
-  console.error(problems.length ? `\n${problems.length} problem(s)` : "corrections file is valid");
+  console.error(problems.length ? `\n${problems.length} problem(s)` : "corrections and registry files are valid");
   process.exit(problems.length ? 1 : 0);
 }
 

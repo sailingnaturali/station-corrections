@@ -5,6 +5,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "strict": true,
+    "allowJs": true,
     "noUnusedLocals": true,
     "noEmit": true,
     "skipLibCheck": true

@@ -103,7 +103,7 @@ export function toSlug(name: string): string;
 /** One station's pinned position and audit verdict. */
 export interface LockEntry {
   position: [number, number];
-  verdict: "clear" | "verified" | "ashore";
+  verdict: "clear" | "verified" | "ashore" | "unverifiable";
   /** Present only on an `ashore` verdict. */
   metresInland?: number;
 }

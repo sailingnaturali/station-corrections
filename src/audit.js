@@ -26,6 +26,9 @@ export const REPORT_THRESHOLD_M = 200;
  * single verdict rather than a pass/fail list — used by `lock.js` to pin
  * what a station *is*, not just which ones are worth reporting.
  */
+/**
+ * @returns {{ verdict: "verified" } | { verdict: "unverifiable" } | { verdict: "clear" } | { verdict: "ashore", metresInland: number }}
+ */
 export function classify(resolved, thresholdM = REPORT_THRESHOLD_M) {
   if (resolved.positionVerified) return { verdict: "verified" };
   // Outside the coastline clip there is no land data, so inlandMetres would

@@ -216,7 +216,7 @@ test("a station that moves from clear to ashore is re-audited, not trusted from 
 test("validate checks the registry and reports coverage gaps as notes", () => {
   const result = run(["validate"]);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stderr, /corrections file is valid/);
+  assert.match(result.stderr, /corrections and registry files are valid/);
   // The three northern gates cannot be checked against the clipped coastline.
   assert.match(result.stderr, /outside coastline coverage/);
 });

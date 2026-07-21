@@ -32,7 +32,8 @@ import {
   type Registry,
   type RegistryStation,
 } from "../index.js";
-import { validatePositions } from "../validate-positions.js";
+import { validatePositions, coverageWarnings } from "../validate-positions.js";
+import { classify } from "../src/audit.js";
 
 const station: Station = { id: "noaa/9447659", name: "EVERETT", latitude: 47.98, longitude: -122.223 };
 
@@ -73,7 +74,7 @@ const slug: string = toSlug("Friday Harbor");
 
 const lock: Lock = buildLock([station], {
   resolve,
-  classify: (r) => (r.positionVerified ? { verdict: "verified" } : { verdict: "clear" }),
+  classify,
   coastlineFingerprint: "sha256-abc",
   thresholdM: 200,
 });
@@ -90,9 +91,16 @@ const regProblems: string[] = [
 ];
 const fromRegistry: Resolver = createResolver({ corrections, gazetteer, registry: reg });
 
+// validatePositions and coverageWarnings are widened to accept either file -
+// exercise both shapes, not just Corrections.
+const registryPositionProblems: string[] = validatePositions(reg);
+const correctionsCoverage: string[] = coverageWarnings(corrections);
+const registryCoverage: string[] = coverageWarnings(reg);
+
 // Reference every binding so noUnusedLocals stays on for real mistakes.
 export const surface = {
   resolved, name, context, cities, aliases, corrected, lat, verified,
   own, bare, noArgs, problems, limit, cleaned, slug, reread, movedIds, unchanged,
   reg, entry, regProblems, fromRegistry,
+  registryPositionProblems, correctionsCoverage, registryCoverage,
 };

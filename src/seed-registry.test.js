@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { loadRegistry, validateRegistry } from "./registry.js";
 import { loadCorrections } from "./corrections.js";
 import { createResolver } from "./resolve.js";
-import { coverageWarnings } from "./validate-positions.js";
+import { validatePositions, coverageWarnings } from "./validate-positions.js";
 
 const read = (name) =>
   readFileSync(fileURLToPath(new URL(`../data/${name}`, import.meta.url)), "utf8");
@@ -55,4 +55,12 @@ const OUTSIDE_COVERAGE = [
 test("only the known northern gates are outside coastline coverage", () => {
   const warned = coverageWarnings(registry).map((w) => w.split(":")[0]);
   assert.deepEqual(warned.sort(), [...OUTSIDE_COVERAGE].sort());
+});
+
+// The spec requires every registry position to be either confirmed in water
+// or reported as outside coverage. The test above pins the three
+// out-of-coverage gates; this pins the other 16 as actually in water -
+// without it, a registry position drifting onto land would pass silently.
+test("every in-coverage registry position is in water", () => {
+  assert.deepEqual(validatePositions(registry), []);
 });

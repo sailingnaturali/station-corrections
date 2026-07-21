@@ -1,27 +1,40 @@
 import { isOnLand, isWithinCoverage } from "./coastline.js";
 
 /**
- * Check that a corrections file's position overrides actually land in
+ * Pull a numeric [lat, lon] out of a record's position, or null if it is
+ * missing or malformed. Shared by both checks below - validateCorrections
+ * and validateRegistry already report a malformed position, so both callers
+ * here skip it rather than repeating that complaint.
+ */
+function numericPosition(record) {
+  const position = record.position;
+  if (!Array.isArray(position) || position.length !== 2) return null;
+  const [lat, lon] = position;
+  if (typeof lat !== "number" || typeof lon !== "number") return null;
+  return [lat, lon];
+}
+
+/**
+ * Check that a corrections file's or registry's positions actually land in
  * water. Requires the coastline, so this is kept apart from
- * validateCorrections - that one stays dependency-free for callers (the
- * library entry point included) that never load the coastline.
+ * validateCorrections/validateRegistry - those stay dependency-free for
+ * callers (the library entry point included) that never load the coastline.
  *
  * Only checks "is this in water", not distance from the originally
- * published position: the corrections file does not carry the published
- * position to compare against.
+ * published position: neither file carries a published position to compare
+ * against (a registry station has none; a correction's map does not either).
  *
  * Malformed positions (wrong shape, non-numeric) are skipped here -
- * validateCorrections already reports those.
+ * validateCorrections/validateRegistry already report those.
  */
 export function validatePositions(map) {
   const problems = [];
   for (const [id, record] of map) {
-    const position = record.position;
-    if (!Array.isArray(position) || position.length !== 2) continue;
-    const [lat, lon] = position;
-    if (typeof lat !== "number" || typeof lon !== "number") continue;
+    const numeric = numericPosition(record);
+    if (!numeric) continue;
+    const [lat, lon] = numeric;
     if (isOnLand(lat, lon)) {
-      problems.push(`${id}: corrected position ${lat}, ${lon} is still on land`);
+      problems.push(`${id}: position ${lat}, ${lon} is on land`);
     }
   }
   return problems;
@@ -38,10 +51,9 @@ export function validatePositions(map) {
 export function coverageWarnings(map) {
   const warnings = [];
   for (const [id, record] of map) {
-    const position = record.position;
-    if (!Array.isArray(position) || position.length !== 2) continue;
-    const [lat, lon] = position;
-    if (typeof lat !== "number" || typeof lon !== "number") continue;
+    const numeric = numericPosition(record);
+    if (!numeric) continue;
+    const [lat, lon] = numeric;
     if (!isWithinCoverage(lat, lon)) {
       warnings.push(`${id}: position ${lat}, ${lon} is outside coastline coverage - cannot be verified`);
     }

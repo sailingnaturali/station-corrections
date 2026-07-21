@@ -250,3 +250,17 @@ test("a resolver with no registry behaves exactly as before", () => {
   assert.equal(r.name, "Everett");
   assert.equal(r.context, "Port Gardner");
 });
+
+test("a registry station with a malformed position throws a clear, actionable error rather than crashing on undefined", () => {
+  // createResolver is public API and accepts a caller-supplied registry that
+  // never went through validateRegistry - a missing position must not throw
+  // a raw TypeError from indexing owned.position[0].
+  const badRegistry = new Map([
+    ["chs-broken", { name: "Broken", provider: "chs", providerId: "1" }],
+  ]);
+  const badResolve = createResolver({ registry: badRegistry });
+  assert.throws(
+    () => badResolve({ id: "chs-broken" }),
+    /chs-broken/,
+  );
+});

@@ -52,7 +52,7 @@ same opt-in way, via `import { validatePositions } from "@sailingnaturali/statio
 the root import must stay cheap. A consumer validating their own corrections file, the same way the
 CLI's `validate` command does, imports this subpath directly.
 
-## Three tiers
+## Four tiers
 
 Every lookup resolves highest-first:
 

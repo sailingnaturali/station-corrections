@@ -97,8 +97,19 @@ export function createResolver({ corrections = new Map(), gazetteer = [], regist
  * Provider data on the incoming station is ignored outright - if the registry
  * owns a station, it is the authority, and quietly preferring a caller's name
  * would reintroduce exactly the ambiguity the registry exists to remove.
+ *
+ * `createResolver` is public API and accepts a caller-supplied registry, so a
+ * malformed `position` here is a trust-boundary problem, not an internal bug:
+ * throw a clear, actionable error rather than a raw TypeError from indexing
+ * `undefined`, and rather than silently substituting a fallback position - a
+ * registry station with no position is a real error to fix, not paper over.
  */
 function resolveOwned(id, owned) {
+  const position = owned.position;
+  if (!Array.isArray(position) || typeof position[0] !== "number" || typeof position[1] !== "number") {
+    throw new Error(`registry station "${id}" has no valid position - run validateRegistry before resolving`);
+  }
+
   const name = owned.name;
   const slug = owned.slug ?? toSlug(name);
   const aliases = new Set([
@@ -113,8 +124,8 @@ function resolveOwned(id, owned) {
     slug,
     cities: owned.cities ?? [],
     aliases: [...aliases],
-    latitude: owned.position[0],
-    longitude: owned.position[1],
+    latitude: position[0],
+    longitude: position[1],
     corrected: false,
     derived: false,
   };
