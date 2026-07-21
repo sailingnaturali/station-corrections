@@ -1,1 +1,157 @@
-# Stations whose identity this package owns. See docs/superpowers/specs/2026-07-21-chs-station-registry-design.md
+# Stations whose identity this package owns, rather than corrects.
+#
+# Unlike corrections.yaml, these records have no upstream to differ from: the
+# name is not a provider's name and the position is not a correction of a
+# published one. CHS tidal-current gates are the first data like this - the
+# fitting pipeline emits a hand-written label and no position at all.
+#
+# Keys match what chs-constituents emits ("chs-" + slug of the label), so a
+# consumer can resolve straight from the id in its own output.
+#
+# Positions and providerIds are taken from currents-vault pass frontmatter and
+# agree with chs-constituents/stations/salish-sea.json. Contexts are written
+# here.
+
+chs-active-pass:
+  name: Active Pass
+  context: Galiano & Mayne Islands
+  position: [48.8604, -123.3128]
+  provider: chs
+  providerId: 63aef09f84e5432cd3b6c509
+
+chs-arran-rapids:
+  name: Arran Rapids
+  context: Stuart Island
+  position: [50.42, -125.14]
+  provider: chs
+  providerId: 63aeff5884e5432cd3b71283
+
+chs-beazley-passage:
+  name: Beazley Passage
+  context: Surge Narrows
+  position: [50.2263, -125.142]
+  provider: chs
+  providerId: 63aefe506a2b9417c0350720
+  aliases: [surge narrows]
+
+chs-blackney-passage:
+  name: Blackney Passage
+  context: Blackfish Sound
+  position: [50.555, -126.6842]
+  provider: chs
+  providerId: 63af00086a2b9417c0353154
+
+chs-dent-rapids:
+  name: Dent Rapids
+  context: Cordero Channel
+  position: [50.41, -125.2117]
+  provider: chs
+  providerId: 63af06d56a2b9417c0353451
+
+chs-dodd-narrows:
+  name: Dodd Narrows
+  context: Nanaimo
+  position: [49.1344, -123.8171]
+  provider: chs
+  providerId: 63aef1866a2b9417c035030f
+  cities: [Nanaimo]
+
+chs-first-narrows:
+  name: First Narrows
+  context: Lions Gate Bridge
+  position: [49.316, -123.1401]
+  provider: chs
+  providerId: 5dd30650e0fdc4b9b4be6d24
+  cities: [Vancouver]
+  aliases: [lions gate]
+
+chs-gabriola-passage:
+  name: Gabriola Passage
+  context: Gulf Islands
+  position: [49.1291, -123.7043]
+  provider: chs
+  providerId: 63aef12e84e5432cd3b6db8d
+
+chs-gillard-passage:
+  name: Gillard Passage
+  context: Yuculta Rapids
+  position: [50.3933, -125.1567]
+  provider: chs
+  providerId: 5dd3064fe0fdc4b9b4be6978
+  aliases: [yucultas]
+
+chs-hole-in-the-wall:
+  name: Hole in the Wall
+  context: Okisollo Channel
+  position: [50.3001, -125.2083]
+  provider: chs
+  providerId: 63aefcb26a2b9417c035071e
+
+chs-johnstone-strait-central:
+  name: Johnstone Strait - Central
+  context: Port Neville
+  position: [50.4717, -126.1367]
+  provider: chs
+  providerId: 63aeffc384e5432cd3b71285
+
+chs-juan-de-fuca-east:
+  name: Juan de Fuca - East
+  context: Victoria approaches
+  position: [48.2317, -123.53]
+  provider: chs
+  providerId: 63aeee1d84e5432cd3b6c500
+  cities: [Victoria]
+
+chs-porlier-pass:
+  name: Porlier Pass
+  context: Galiano & Valdes Islands
+  position: [49.015, -123.585]
+  provider: chs
+  providerId: 63aef0ed84e5432cd3b6c50b
+
+chs-race-passage:
+  name: Race Passage
+  context: Race Rocks
+  position: [48.3067, -123.5367]
+  provider: chs
+  providerId: 63aeee896a2b9417c034d337
+  cities: [Victoria]
+
+chs-sechelt-rapids:
+  name: Sechelt Rapids
+  context: Skookumchuck Narrows
+  position: [49.7383, -123.8983]
+  provider: chs
+  providerId: 63aef40a6a2b9417c0350313
+  aliases: [skookumchuck]
+
+chs-second-narrows:
+  name: Second Narrows
+  context: Burrard Inlet
+  position: [49.2947, -123.0245]
+  provider: chs
+  providerId: 5dd30650e0fdc4b9b4be6c2d
+  cities: [Vancouver]
+
+chs-seymour-narrows:
+  name: Seymour Narrows
+  context: Discovery Passage
+  position: [50.1333, -125.35]
+  provider: chs
+  providerId: 63aefc7784e5432cd3b6eb1e
+  cities: [Campbell River]
+
+chs-tillicum-bridge:
+  name: Tillicum Bridge
+  context: Gorge Waterway
+  position: [48.4464, -123.4002]
+  provider: chs
+  providerId: 64960066ebd87908f1fcb787
+  cities: [Victoria]
+
+chs-weynton-passage:
+  name: Weynton Passage
+  context: Broughton Strait
+  position: [50.6033, -126.8117]
+  provider: chs
+  providerId: 63af005f6a2b9417c0353158
