@@ -29,3 +29,79 @@ noaa/9442396:
     Sited up the Quillayute River. OSM land-polygons maps the ocean coastline
     only, so a riverine gauge reads inland by construction - the published
     position is correct.
+
+noaa/9445133:
+  name: Bangor Wharf
+  context: Hood Canal
+  cities: [Silverdale, Poulsbo]
+
+noaa/9449424:
+  name: Cherry Point
+  context: Strait of Georgia
+  cities: [Ferndale, Blaine]
+
+noaa/9445016:
+  name: Foulweather Bluff
+  context: Hood Canal Entrance
+  cities: [Port Ludlow]
+
+noaa/9447973:
+  name: Naval Air Station Whidbey Island
+  context: Oak Harbor
+  cities: [Oak Harbor]
+  aliases: [nas whidbey, whidbey island naval air station]
+
+noaa/9443090:
+  name: Neah Bay
+  context: Strait of Juan de Fuca
+  cities: [Neah Bay]
+
+noaa/9449639:
+  name: Point Roberts
+  context: Boundary Bay
+  cities: [Point Roberts, Blaine]
+
+noaa/9444090:
+  name: Port Angeles
+  context: Strait of Juan de Fuca
+  cities: [Port Angeles]
+
+noaa/9444900:
+  name: Port Townsend
+  context: Admiralty Inlet
+  cities: [Port Townsend]
+
+noaa/9447717:
+  name: Priest Point
+  context: Possession Sound
+  cities: [Marysville, Everett]
+
+noaa/9446804:
+  name: Sandy Point
+  context: Anderson Island
+  cities: [Steilacoom]
+
+noaa/9448576:
+  name: Sneeoosh Point
+  context: Skagit Bay
+  cities: [La Conner]
+
+noaa/9448009:
+  name: Spee-Bi-Dah
+  context: Possession Sound
+  cities: [Marysville]
+
+noaa/9447773:
+  name: Tulalip
+  context: Possession Sound
+  cities: [Marysville]
+
+noaa/9445478:
+  name: Union
+  context: Hood Canal
+  cities: [Shelton]
+
+noaa/9449746:
+  name: Waldron Island
+  context: San Juan Islands
+  cities: [Friday Harbor]
