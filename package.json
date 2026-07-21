@@ -35,7 +35,8 @@
     "station-corrections": "bin/station-corrections.mjs"
   },
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./data/*": "./data/*"
   },
   "files": [
     "src",

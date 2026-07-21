@@ -15,13 +15,9 @@ npm install @sailingnaturali/station-corrections
 ```
 
 ```js
-import { createResolver, loadCorrections } from "@sailingnaturali/station-corrections";
-import { readFileSync } from "node:fs";
+import { createBundledResolver } from "@sailingnaturali/station-corrections";
 
-const resolve = createResolver({
-  corrections: loadCorrections(readFileSync("data/corrections.yaml", "utf8")),
-  gazetteer: JSON.parse(readFileSync("data/gazetteer.json", "utf8")),
-});
+const resolve = createBundledResolver();
 
 resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
 // {
@@ -37,6 +33,12 @@ resolve({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.
 
 It is provider-agnostic: `noaa/9447659`, `chs-active-pass` and `PUG1717` all resolve through the
 same overlay, so tides, currents and both countries share one vocabulary.
+
+To resolve against your own corrections or gazetteer instead of the bundled ones, use
+`createResolver({ corrections, gazetteer })` directly with `loadCorrections`. Advanced consumers
+that need the raw shipped files can reach them via the `./data/*` export subpath, e.g.
+`import("@sailingnaturali/station-corrections/data/corrections.yaml")` with an import attribute,
+or `createRequire(import.meta.url).resolve(...)` to get a filesystem path.
 
 ## Three tiers
 
