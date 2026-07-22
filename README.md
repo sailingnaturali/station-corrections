@@ -114,11 +114,13 @@ chs-dodd-narrows:
   context: Nanaimo
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: 63aef1866a2b9417c035030f
 ```
 
-`providerId` stays separate from the key: `chs-dodd-narrows` is stable and safe in a URL, while
-`63aef186…` is an opaque API handle. A station may not appear in both files — two sources of
+The registry ships **no provider-minted identifier.** The key, `chs-dodd-narrows`, is the public
+id — stable and safe in a URL. Joining this record to a provider's live data (a CHS gate's
+current fitting, say) is done by **name**, and the provider's own opaque handle is resolved at
+runtime by whoever holds a licence to that provider's API; it is never redistributed here. See
+[PROVENANCE.md](PROVENANCE.md) for why. A station may not appear in both files — two sources of
 authority for one station is the bug, not a feature — and slugs must be unique across both,
 because URLs share one namespace. `formerSlugs` (see the corrections table above) is valid here
 too, for the same reason: both files feed the one slug namespace a consumer routes on.
@@ -216,9 +218,9 @@ If a station looks wrong in an app built on this, a one-line PR fixes it for eve
   Anacortes area as water and Friday Harbor as land, generalising the San Juans away entirely.
 - **Corrections and gazetteer** — hand-written here, MIT with the package.
 - **Station identity** (names, contexts, positions) — our own facts, independently
-  obtained and human-reviewed, not a copy of any provider's station file. Only `providerId`
-  is a provider's own handle, carried because it keys their API. Field-by-field provenance and
-  the reasoning are in [PROVENANCE.md](PROVENANCE.md).
+  obtained and human-reviewed, not a copy of any provider's station file. No provider-minted
+  identifier ships at all. Field-by-field provenance and the reasoning are in
+  [PROVENANCE.md](PROVENANCE.md).
 
 Rebuild the coastline with `node scripts/build-coastline.mjs <shapefile-dir> data/coastline.geojson`
 (needs GDAL). The golden-point tests in `src/coastline.test.js` are the acceptance criterion for

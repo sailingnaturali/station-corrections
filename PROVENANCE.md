@@ -52,10 +52,11 @@ source.
 | `name` | **Hand-written label.** Renaming and re-casing shouting provider names (`CHERRY POINT` → `Cherry Point`) is the whole point of this package — original editorial work, reviewed by a person. |
 | `context`, `cities`, `aliases` | **Hand-written here.** Not present in provider data; original. |
 | `position` | **Independently derived and human-verified.** CHS gate positions come from the `chs-constituents` fitting pipeline and `currents-vault` pass frontmatter, cross-checked against `chs-constituents/stations/salish-sea.json`, then audited against a coastline and reviewed by a person — not lifted from a CHS station export. |
-| `providerId`, `providerBin` | **The provider's own opaque handle**, necessarily obtained from the provider because it keys the provider's API (`63aef09f…` for CHS, `PUG1717` for NOAA). It is a reference/pointer — the minimum needed to be interoperable — and a fact. This is the one field that points *into* a provider's system, by construction. |
+| provider id | **Deliberately absent.** The registry carries no provider-minted identifier at all — not even as a reference. A consumer joins a record here to a provider's live data by name; the provider's own opaque handle is resolved at runtime by whoever holds a licence to that provider's API, and it never enters this repository. |
 
-The honest summary: the *names, context, and positions* are our work; the *providerIds*
-are the providers' handles, carried because interoperability requires them.
+The honest summary: the *names, context, and positions* are our work, and there is no
+provider handle in the published data at all — the one field that would point *into* a
+provider's system is the one field we chose not to ship.
 
 ## Human review
 
@@ -72,7 +73,8 @@ When you add or correct a station:
 - **Do not paste a row out of a provider's station export.** Obtain the name, context, and
   position independently (chart, gazetteer, the fitting pipeline, direct observation) and
   write them here yourself.
-- The `providerId` is the exception — it is the provider's handle and there is nowhere else
-  to get it. That is expected and fine.
+- **Do not add a provider id field.** If your workflow needs the provider's opaque handle to
+  join data at runtime, resolve it there, under your own licence to that provider's API — it
+  does not belong in this repository.
 - If a station's facts came from somewhere other than the defaults in the table above,
   record it in that station's `source` field so the trail stays auditable.
