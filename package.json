@@ -57,6 +57,7 @@
     "data",
     "index.d.ts",
     "validate-positions.d.ts",
+    "PROVENANCE.md",
     "!**/*.test.js",
     "!**/*.test.mjs"
   ],
