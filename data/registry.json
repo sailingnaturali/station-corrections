@@ -6,8 +6,7 @@
       48.8604,
       -123.3128
     ],
-    "provider": "chs",
-    "providerId": "63aef09f84e5432cd3b6c509"
+    "provider": "chs"
   },
   "chs-arran-rapids": {
     "name": "Arran Rapids",
@@ -16,8 +15,7 @@
       50.42,
       -125.14
     ],
-    "provider": "chs",
-    "providerId": "63aeff5884e5432cd3b71283"
+    "provider": "chs"
   },
   "chs-beazley-passage": {
     "name": "Beazley Passage",
@@ -27,7 +25,6 @@
       -125.142
     ],
     "provider": "chs",
-    "providerId": "63aefe506a2b9417c0350720",
     "aliases": [
       "surge narrows"
     ]
@@ -39,8 +36,7 @@
       50.555,
       -126.6842
     ],
-    "provider": "chs",
-    "providerId": "63af00086a2b9417c0353154"
+    "provider": "chs"
   },
   "chs-dent-rapids": {
     "name": "Dent Rapids",
@@ -49,8 +45,7 @@
       50.41,
       -125.2117
     ],
-    "provider": "chs",
-    "providerId": "63af06d56a2b9417c0353451"
+    "provider": "chs"
   },
   "chs-dodd-narrows": {
     "name": "Dodd Narrows",
@@ -60,7 +55,6 @@
       -123.8171
     ],
     "provider": "chs",
-    "providerId": "63aef1866a2b9417c035030f",
     "cities": [
       "Nanaimo"
     ]
@@ -73,7 +67,6 @@
       -123.1401
     ],
     "provider": "chs",
-    "providerId": "5dd30650e0fdc4b9b4be6d24",
     "cities": [
       "Vancouver"
     ],
@@ -88,8 +81,7 @@
       49.1291,
       -123.7043
     ],
-    "provider": "chs",
-    "providerId": "63aef12e84e5432cd3b6db8d"
+    "provider": "chs"
   },
   "chs-gillard-passage": {
     "name": "Gillard Passage",
@@ -99,7 +91,6 @@
       -125.1567
     ],
     "provider": "chs",
-    "providerId": "5dd3064fe0fdc4b9b4be6978",
     "aliases": [
       "yucultas"
     ]
@@ -111,8 +102,7 @@
       50.3001,
       -125.2083
     ],
-    "provider": "chs",
-    "providerId": "63aefcb26a2b9417c035071e"
+    "provider": "chs"
   },
   "chs-johnstone-strait-central": {
     "name": "Johnstone Strait - Central",
@@ -121,8 +111,7 @@
       50.4717,
       -126.1367
     ],
-    "provider": "chs",
-    "providerId": "63aeffc384e5432cd3b71285"
+    "provider": "chs"
   },
   "chs-juan-de-fuca-east": {
     "name": "Juan de Fuca - East",
@@ -132,7 +121,6 @@
       -123.53
     ],
     "provider": "chs",
-    "providerId": "63aeee1d84e5432cd3b6c500",
     "cities": [
       "Victoria"
     ]
@@ -144,8 +132,7 @@
       49.015,
       -123.585
     ],
-    "provider": "chs",
-    "providerId": "63aef0ed84e5432cd3b6c50b"
+    "provider": "chs"
   },
   "chs-race-passage": {
     "name": "Race Passage",
@@ -155,7 +142,6 @@
       -123.5367
     ],
     "provider": "chs",
-    "providerId": "63aeee896a2b9417c034d337",
     "cities": [
       "Victoria"
     ]
@@ -168,7 +154,6 @@
       -123.8983
     ],
     "provider": "chs",
-    "providerId": "63aef40a6a2b9417c0350313",
     "aliases": [
       "skookumchuck"
     ]
@@ -181,7 +166,6 @@
       -123.0245
     ],
     "provider": "chs",
-    "providerId": "5dd30650e0fdc4b9b4be6c2d",
     "cities": [
       "Vancouver"
     ]
@@ -194,7 +178,6 @@
       -125.35
     ],
     "provider": "chs",
-    "providerId": "63aefc7784e5432cd3b6eb1e",
     "cities": [
       "Campbell River"
     ]
@@ -207,7 +190,6 @@
       -123.4002
     ],
     "provider": "chs",
-    "providerId": "64960066ebd87908f1fcb787",
     "cities": [
       "Victoria"
     ]
@@ -219,8 +201,7 @@
       50.6033,
       -126.8117
     ],
-    "provider": "chs",
-    "providerId": "63af005f6a2b9417c0353158"
+    "provider": "chs"
   },
   "noaa-boundary-pass": {
     "name": "Boundary Pass",
@@ -230,8 +211,6 @@
       -123.245
     ],
     "provider": "noaa",
-    "providerId": "PUG1717",
-    "providerBin": 35,
-    "source": "NOAA CO-OPS station PUG1717; position and bin from the NOAA station page, not the CHS fitting pipeline that supplies the other gates. See PROVENANCE.md."
+    "source": "NOAA CO-OPS station; position from the NOAA station page, not the CHS fitting pipeline that supplies the other gates. See PROVENANCE.md."
   }
 }

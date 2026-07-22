@@ -17,7 +17,6 @@ chs-a:
   name: Active Pass
   position: [48.86, -123.31]
   provider: chs
-  providerId: a
 `);
   const lock = buildSlugsLock(corrections, registry);
   assert.equal(lock.slugs["noaa/1"], "everett");
@@ -73,7 +72,6 @@ chs-a:
   name: Active Pass
   position: [48.86, -123.31]
   provider: chs
-  providerId: a
 `);
   const lock = buildSlugsLock(new Map(), registry);
   const renamed = loadRegistry(`
@@ -81,7 +79,6 @@ chs-a:
   name: Active Pass Gate
   position: [48.86, -123.31]
   provider: chs
-  providerId: a
 `);
   const problems = checkSlugs(lock, new Map(), renamed);
   assert.equal(problems.length, 1);

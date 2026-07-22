@@ -228,7 +228,6 @@ const registry = new Map([
     context: "Nanaimo",
     position: [49.1344, -123.8171],
     provider: "chs",
-    providerId: "63aef1866a2b9417c035030f",
     cities: ["Nanaimo"],
     aliases: ["dodd"],
   }],
@@ -254,7 +253,6 @@ test("formerSlugs appears on a registry station's resolved record", () => {
       name: "Dodd Narrows",
       position: [49.1344, -123.8171],
       provider: "chs",
-      providerId: "abc",
       formerSlugs: ["dodds-narrows"],
     }],
   ]);
@@ -292,7 +290,7 @@ test("a registry station with a malformed position throws a clear, actionable er
   // never went through validateRegistry - a missing position must not throw
   // a raw TypeError from indexing owned.position[0].
   const badRegistry = new Map([
-    ["chs-broken", { name: "Broken", provider: "chs", providerId: "1" }],
+    ["chs-broken", { name: "Broken", provider: "chs" }],
   ]);
   const badResolve = createResolver({ registry: badRegistry });
   assert.throws(
