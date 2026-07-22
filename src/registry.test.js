@@ -9,7 +9,6 @@ chs-dodd-narrows:
   context: Nanaimo
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: 63aef1866a2b9417c035030f
   cities: [Nanaimo]
   aliases: [dodd]
 `;
@@ -24,10 +23,10 @@ test("accepts a valid registry", () => {
   assert.deepEqual(validateRegistry(loadRegistry(VALID)), []);
 });
 
-test("requires name, position, provider and providerId", () => {
+test("requires name, position and provider", () => {
   const problems = validateRegistry(loadRegistry("chs-x:\n  context: Somewhere\n"));
-  assert.equal(problems.length, 4);
-  for (const field of ["name", "position", "provider", "providerId"]) {
+  assert.equal(problems.length, 3);
+  for (const field of ["name", "position", "provider"]) {
     assert.ok(problems.some((p) => p.includes(field)), `no problem mentioned ${field}`);
   }
 });
@@ -38,7 +37,6 @@ chs-x:
   name: X
   position: 5
   provider: chs
-  providerId: abc
 `));
   assert.equal(problems.length, 1);
   assert.match(problems[0], /position must be/);
@@ -50,7 +48,6 @@ chs-x:
   name: X
   position: [95, -123]
   provider: chs
-  providerId: abc
 `));
   assert.equal(problems.length, 1);
   assert.match(problems[0], /latitude 95 is out of range/);
@@ -63,7 +60,6 @@ chs-dodd-narrows:
   context: Dodd Narrows Approach
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: abc
 `));
   assert.equal(problems.length, 1);
   assert.match(problems[0], /context repeats the name/);
@@ -76,19 +72,16 @@ chs-a:
   slug: Not A Slug
   position: [49, -123]
   provider: chs
-  providerId: a
 chs-b:
   name: B
   slug: dupe
   position: [49, -123]
   provider: chs
-  providerId: b
 chs-c:
   name: C
   slug: dupe
   position: [49, -123]
   provider: chs
-  providerId: c
 `));
   assert.equal(problems.length, 2);
   assert.ok(problems.some((p) => /must be lowercase/.test(p)));
@@ -101,7 +94,6 @@ chs-x:
   name: 5
   position: [49, -123]
   provider: chs
-  providerId: abc
   cities: "Nanaimo"
 `));
   assert.ok(problems.some((p) => /name must be a string/.test(p)));
@@ -118,7 +110,6 @@ chs-dodd-narrows:
   name: Dodd Narrows
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: abc
 `);
   const corrections = loadCorrections("chs-dodd-narrows:\n  name: Dodd\n");
   const problems = validateRegistry(registry, { corrections });
@@ -133,7 +124,6 @@ chs-dodd-narrows:
   slug: nanaimo
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: abc
 `);
   const corrections = loadCorrections("noaa/1:\n  name: Nanaimo\n  slug: nanaimo\n");
   const problems = validateRegistry(registry, { corrections });
@@ -153,12 +143,10 @@ chs-a:
   name: Friday Harbor
   position: [48.5, -123]
   provider: chs
-  providerId: a
 chs-b:
   name: Friday Harbor
   position: [48.5, -123]
   provider: chs
-  providerId: b
 `));
   assert.equal(problems.length, 1);
   assert.match(problems[0], /duplicate slug "friday-harbor"/);
@@ -170,7 +158,6 @@ chs-dodd-narrows:
   name: Nanaimo
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: abc
 `);
   const corrections = loadCorrections("noaa/1:\n  name: Somewhere Else\n  slug: nanaimo\n");
   const problems = validateRegistry(registry, { corrections });
@@ -184,7 +171,6 @@ chs-dodd-narrows:
   name: Dodd Narrows
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: abc
   formerSlugs: [old-dodd]
 `));
   assert.deepEqual(problems, []);
@@ -196,7 +182,6 @@ chs-x:
   name: X
   position: [49, -123]
   provider: chs
-  providerId: abc
   formerSlugs: [Not A Slug]
 `));
   assert.equal(problems.length, 1);
@@ -209,14 +194,12 @@ chs-a:
   name: A
   position: [49, -123]
   provider: chs
-  providerId: a
   formerSlugs: [old-b]
 chs-b:
   name: B
   slug: old-b
   position: [49, -123]
   provider: chs
-  providerId: b
 `));
   assert.equal(problems.length, 1);
   assert.match(problems[0], /chs-b: slug "old-b" collides with a former slug of chs-a/);
@@ -228,7 +211,6 @@ chs-dodd-narrows:
   name: Nanaimo
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: abc
 `);
   const corrections = loadCorrections("noaa/1:\n  formerSlugs: [nanaimo]\n");
   const problems = validateRegistry(registry, { corrections });
@@ -242,7 +224,6 @@ chs-dodd-narrows:
   name: Dodd Narrows
   position: [49.1344, -123.8171]
   provider: chs
-  providerId: abc
   formerSlugs: [nanaimo]
 `);
   const corrections = loadCorrections("noaa/1:\n  name: Nanaimo\n  slug: nanaimo\n");
@@ -256,80 +237,13 @@ test("a registry entry with no slug and no name does not throw or register a bog
 chs-a:
   position: [49, -123]
   provider: chs
-  providerId: a
 chs-b:
   name: undefined
   position: [49, -123]
   provider: chs
-  providerId: b
 `);
   const problems = validateRegistry(registry);
   assert.ok(problems.some((p) => /chs-a: name is required/.test(p)));
   assert.ok(!problems.some((p) => /duplicate slug/.test(p)));
-});
-
-test("accepts a providerBin as a positive integer", () => {
-  const problems = validateRegistry(loadRegistry(`
-noaa-boundary-pass:
-  name: Boundary Pass
-  context: Saturna & Patos Islands
-  position: [48.6912, -123.245]
-  provider: noaa
-  providerId: PUG1717
-  providerBin: 35
-`));
-  assert.deepEqual(problems, []);
-});
-
-test("rejects a non-number providerBin", () => {
-  const problems = validateRegistry(loadRegistry(`
-chs-x:
-  name: X
-  position: [49, -123]
-  provider: chs
-  providerId: abc
-  providerBin: "deep"
-`));
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /providerBin must be a number/);
-});
-
-test("rejects a fractional providerBin", () => {
-  const problems = validateRegistry(loadRegistry(`
-chs-x:
-  name: X
-  position: [49, -123]
-  provider: chs
-  providerId: abc
-  providerBin: 2.5
-`));
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /providerBin must be a positive integer/);
-});
-
-test("rejects a negative providerBin", () => {
-  const problems = validateRegistry(loadRegistry(`
-chs-x:
-  name: X
-  position: [49, -123]
-  provider: chs
-  providerId: abc
-  providerBin: -1
-`));
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /providerBin must be a positive integer/);
-});
-
-test("rejects a zero providerBin", () => {
-  const problems = validateRegistry(loadRegistry(`
-chs-x:
-  name: X
-  position: [49, -123]
-  provider: chs
-  providerId: abc
-  providerBin: 0
-`));
-  assert.equal(problems.length, 1);
-  assert.match(problems[0], /providerBin must be a positive integer/);
 });
 

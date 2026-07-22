@@ -171,9 +171,6 @@ export interface RegistryStation {
   name: string;
   position: [number, number];
   provider: string;
-  providerId: string;
-  /** Depth-cell bin for providers (NOAA) that report current data per bin. Not every provider has this concept. */
-  providerBin?: number;
   /**
    * Where this station's facts were independently obtained, when it deviates
    * from the defaults documented in PROVENANCE.md. Omit for a station that

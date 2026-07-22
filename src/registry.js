@@ -25,7 +25,6 @@ const isNonEmptyString = (v) => isString(v) && v.trim() !== "";
 const isStringArray = (v) => Array.isArray(v) && v.every(isString);
 const isValidPosition = (v) =>
   Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === "number");
-const isPositiveInteger = (v) => Number.isInteger(v) && v > 0;
 
 /**
  * Check a registry for the mistakes contributors make.
@@ -50,7 +49,7 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
   const formerSlugOwners = new Map();
 
   for (const [id, record] of registry) {
-    for (const field of ["name", "provider", "providerId"]) {
+    for (const field of ["name", "provider"]) {
       if (!isNonEmptyString(record[field])) {
         problems.push(
           record[field] !== undefined && !isString(record[field])
@@ -87,21 +86,6 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
       const [lat, lon] = record.position;
       if (lat < -90 || lat > 90) problems.push(`${id}: latitude ${lat} is out of range`);
       if (lon < -180 || lon > 180) problems.push(`${id}: longitude ${lon} is out of range`);
-    }
-
-    // Only NOAA-style providers report a depth-cell bin alongside a station
-    // id, so this is optional and the 19 CHS gates leave it unset. A NOAA bin
-    // enumerates a discrete depth cell in an ADCP current profile, counted
-    // from 1 - there is no bin 0, no fractional bin (you can't sit between
-    // two depth cells), and no negative bin. Reject anything that isn't a
-    // positive integer so a hand-edited typo is caught here, in review,
-    // rather than becoming a bad NOAA API call downstream.
-    if (record.providerBin !== undefined) {
-      if (typeof record.providerBin !== "number") {
-        problems.push(`${id}: providerBin must be a number`);
-      } else if (!isPositiveInteger(record.providerBin)) {
-        problems.push(`${id}: providerBin must be a positive integer`);
-      }
     }
 
     if (isString(record.name) && isString(record.context) && namesOverlap(record.name, record.context)) {
