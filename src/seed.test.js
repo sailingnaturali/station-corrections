@@ -12,15 +12,16 @@ const corrections = loadCorrections(read("corrections.yaml"));
 const gazetteer = JSON.parse(read("gazetteer.json"));
 const resolve = createResolver({ corrections, gazetteer });
 
-// All 18 stations that arrive with no context of their own. IDs and coordinates
-// were derived from slackwater-web's bundled station data, not written by hand -
+// Stations that arrive with no context of their own. IDs and coordinates were
+// derived from slackwater-web's bundled station data, not written by hand -
 // three hand-written IDs in an earlier draft pointed at the wrong stations.
+// Two of the original 18 (Jim Creek, Telegraph Bay) are pinned separately in
+// CHART_PLACED below, since their context is curated rather than derived.
 const CONTEXTLESS = [
   ["noaa/9445133", "Bangor Wharf", 47.748, -122.727],
   ["noaa/9449424", "CHERRY POINT", 48.863, -122.759],
   ["noaa/9447659", "Everett", 47.980, -122.223],
   ["noaa/9445016", "Foulweather Bluff", 47.927, -122.617],
-  ["noaa/9443551", "Jim Creek", 48.187, -124.063],
   ["noaa/9447973", "NAS Whidbey Island", 48.343, -122.686],
   ["noaa/9443090", "NEAH BAY", 48.371, -124.602],
   ["noaa/9449639", "POINT ROBERTS, PUGET SOUND", 48.975, -123.083],
@@ -30,7 +31,6 @@ const CONTEXTLESS = [
   ["noaa/9446804", "SANDY POINT ANDERSON ISLAND, PUGET SOUND", 47.153, -122.675],
   ["noaa/9448576", "Sneeoosh Point", 48.400, -122.548],
   ["noaa/9448009", "Spee-Bi-Dah", 48.088, -122.322],
-  ["noaa/9449988", "TELEGRAPH BAY, PUGET SOUND", 48.443, -122.805],
   ["noaa/9447773", "Tulalip", 48.065, -122.288],
   ["noaa/9445478", "Union", 47.358, -123.098],
   ["noaa/9449746", "WALDRON ISLAND, PUGET SOUND", 48.687, -123.038],
@@ -55,6 +55,25 @@ for (const [id, raw, lat, lon] of OVERLAP_SUPPRESSED) {
     const r = resolve({ id, name: raw, latitude: lat, longitude: lon });
     assert.notEqual(r.context, "", `${raw} still has no context`);
     assert.notEqual(r.context.toLowerCase(), r.name.toLowerCase());
+  });
+}
+
+// Two decommissioned NOAA gauges (issue #1) that no town or island can confidently
+// hold, curated to the water body NOAA's own chart assignment places them in.
+// Pinned so a future edit that re-derives or mis-places them fails a test, not a
+// shared URL - and so the derived fallback can never quietly reclaim them.
+const CHART_PLACED = [
+  ["noaa/9449988", "TELEGRAPH BAY, PUGET SOUND", 48.443, -122.805, "Telegraph Bay", "Rosario Strait"],
+  ["noaa/9443551", "Jim Creek", 48.187, -124.063, "Jim Creek", "Strait of Juan de Fuca"],
+];
+
+for (const [id, raw, lat, lon, name, context] of CHART_PLACED) {
+  test(`${raw} resolves to its chart-placed context`, () => {
+    const r = resolve({ id, name: raw, latitude: lat, longitude: lon });
+    assert.equal(r.name, name);
+    assert.equal(r.context, context);
+    // Curated, not a nearest-town guess.
+    assert.equal(r.derived, false);
   });
 }
 

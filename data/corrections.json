@@ -183,5 +183,12 @@
     "aliases": [
       "sitcum waterway"
     ]
+  },
+  "noaa/9449988": {
+    "name": "Telegraph Bay",
+    "context": "Rosario Strait"
+  },
+  "noaa/9443551": {
+    "context": "Strait of Juan de Fuca"
   }
 }

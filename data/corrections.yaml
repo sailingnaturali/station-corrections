@@ -143,3 +143,26 @@ noaa/9446484:
   context: Commencement Bay
   cities: [Tacoma]
   aliases: [sitcum waterway]
+
+# Two NOAA short-term gauges, both decommissioned in 2016, whose published
+# coordinates cannot be pinned to a town or island - the pair issue #1 flagged.
+# Placed instead by the water body NOAA's own chart assignment puts them in,
+# which is the one thing the coordinate states without guessing. No `cities`:
+# each sits mid-strait between shores (Telegraph Bay ~5 km south of the bay it
+# is named for, on Decatur Island), so naming a nearest town would reintroduce
+# exactly the "which side?" ambiguity that made the derived fallback wrong.
+
+# noaa/9449988 - removed 2016-01-31. Coordinate (48.443, -122.805) sits in
+# Rosario Strait, not Puget Sound as the raw name claims; NOAA chart 18429 is
+# "Rosario Strait, southern part". Name override strips the wrong qualifier.
+noaa/9449988:
+  name: Telegraph Bay
+  context: Rosario Strait
+
+# noaa/9443551 - a four-month deployment (2016-05-05 to 2016-09-04). Coordinate
+# (48.187, -124.063) is on the Olympic Peninsula shore of the Strait of Juan de
+# Fuca near Pysht; NOAA chart 18460 is "Strait of Juan de Fuca, entrance". Not
+# the inland Jim Creek near Arlington that the name suggests. Source name is
+# already clean, so only the context is corrected.
+noaa/9443551:
+  context: Strait of Juan de Fuca
