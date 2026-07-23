@@ -126,6 +126,24 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
       }
     }
 
+    // A `tideReference` names the tide port a gate is shown beside (a curated
+    // proximity pairing, not a derivation). Only an ordinary current gate may
+    // carry one: a tide port is the thing referenced, and a derived gate
+    // already names its port via derived.reference.
+    if (record.tideReference !== undefined) {
+      if (!isNonEmptyString(record.tideReference)) {
+        problems.push(`${id}: tideReference must be a station key string`);
+      } else if (record.kind === "tide") {
+        problems.push(`${id}: a tide port cannot carry a tideReference`);
+      } else if (record.derived !== undefined) {
+        problems.push(`${id}: derived gate already pairs via derived.reference - drop tideReference`);
+      } else if (!registry.has(record.tideReference)) {
+        problems.push(`${id}: tideReference "${record.tideReference}" is not a station in this registry`);
+      } else if (registry.get(record.tideReference).kind !== "tide") {
+        problems.push(`${id}: tideReference "${record.tideReference}" must be a tide port (kind: tide)`);
+      }
+    }
+
     if (isString(record.name) && isString(record.context) && namesOverlap(record.name, record.context)) {
       problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
     }

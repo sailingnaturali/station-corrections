@@ -300,3 +300,34 @@ chs-b:
   assert.ok(!problems.some((p) => /duplicate slug/.test(p)));
 });
 
+test("accepts a current gate with a tideReference to an existing tide port", () => {
+  const problems = validateRegistry(
+    loadRegistry(
+      "chs-port:\n  name: Port\n  context: Somewhere\n  position: [49.0, -123.0]\n  provider: chs\n  kind: tide\n" +
+        "chs-gate:\n  name: Gate\n  context: Elsewhere\n  position: [49.1, -123.1]\n  provider: chs\n  kind: current\n  tideReference: chs-port\n",
+    ),
+  );
+  assert.deepEqual(problems, []);
+});
+
+test("rejects a tideReference that is unknown, not a tide port, on a tide port, or on a derived gate", () => {
+  const base =
+    "chs-port:\n  name: Port\n  context: Somewhere\n  position: [49.0, -123.0]\n  provider: chs\n  kind: tide\n" +
+    "chs-other-gate:\n  name: Other Gate\n  context: Elsewhere\n  position: [49.2, -123.2]\n  provider: chs\n  kind: current\n";
+  // unknown key
+  let p = validateRegistry(loadRegistry(base + "chs-gate:\n  name: Gate\n  context: Away\n  position: [49.1, -123.1]\n  provider: chs\n  kind: current\n  tideReference: chs-nope\n"));
+  assert.ok(p.some((m) => /tideReference "chs-nope" is not a station/.test(m)));
+  // points at a current gate
+  p = validateRegistry(loadRegistry(base + "chs-gate:\n  name: Gate\n  context: Away\n  position: [49.1, -123.1]\n  provider: chs\n  kind: current\n  tideReference: chs-other-gate\n"));
+  assert.ok(p.some((m) => /tideReference "chs-other-gate" must be a tide port/.test(m)));
+  // on a tide port
+  p = validateRegistry(loadRegistry(base + "chs-port2:\n  name: Port Two\n  context: Away\n  position: [49.3, -123.3]\n  provider: chs\n  kind: tide\n  tideReference: chs-port\n"));
+  assert.ok(p.some((m) => /a tide port cannot carry a tideReference/.test(m)));
+  // on a derived gate (derived.reference already pairs it)
+  p = validateRegistry(loadRegistry(base + "chs-gate:\n  name: Gate\n  context: Away\n  position: [49.1, -123.1]\n  provider: chs\n  kind: current\n  tideReference: chs-port\n  derived:\n    reference: chs-port\n    hwLagMinutes: 25\n    lwLagMinutes: 35\n"));
+  assert.ok(p.some((m) => /derived gate already pairs via derived.reference/.test(m)));
+  // not a string
+  p = validateRegistry(loadRegistry(base + "chs-gate:\n  name: Gate\n  context: Away\n  position: [49.1, -123.1]\n  provider: chs\n  kind: current\n  tideReference: 7\n"));
+  assert.ok(p.some((m) => /tideReference must be a station key string/.test(m)));
+});
+
