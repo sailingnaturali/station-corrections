@@ -1,7 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadCorrections } from "./corrections.js";
-import { validatePositions, coverageWarnings } from "./validate-positions.js";
+import { validatePositions, coverageWarnings, coverageFailures } from "./validate-positions.js";
+import { coverageBounds } from "./coastline.js";
+
+// A point comfortably beyond the bundled coastline in every direction, whatever
+// the current clip - derived from the data so it can't go stale when the clip
+// grows north (#9). Far up the central BC coast.
+const b = coverageBounds();
+const OUTSIDE = [b.maxLat + 1, b.minLon - 1];
 
 test("flags a corrected position that is still on land", () => {
   // Mount Vernon - kilometres from salt water in every direction.
@@ -46,8 +53,8 @@ noaa/1:
 test("a position outside coastline coverage is reported, not passed", () => {
   const map = loadCorrections(`
 noaa/1:
-  position: [50.6033, -126.8117]
-  reason: north of the clip
+  position: [${OUTSIDE[0]}, ${OUTSIDE[1]}]
+  reason: beyond the clip
 `);
   // Not a failure - validatePositions only reports positions on land.
   assert.deepEqual(validatePositions(map), []);
@@ -55,6 +62,28 @@ noaa/1:
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /noaa\/1/);
   assert.match(warnings[0], /outside/);
+});
+
+test("coverageFailures reports the same out-of-coverage station, worded as a failure with a fix (#9)", () => {
+  const map = loadCorrections(`
+chs-far-gate:
+  position: [${OUTSIDE[0]}, ${OUTSIDE[1]}]
+  reason: beyond the clip
+`);
+  const failures = coverageFailures(map);
+  assert.equal(failures.length, 1);
+  assert.match(failures[0], /chs-far-gate/);
+  assert.match(failures[0], /outside coastline coverage/);
+  assert.match(failures[0], /rebuild/);
+});
+
+test("coverageFailures is empty for a covered position", () => {
+  const map = loadCorrections(`
+chs-a:
+  position: [48.9, -123.2]
+  reason: mid strait
+`);
+  assert.deepEqual(coverageFailures(map), []);
 });
 
 test("a covered position produces no coverage warning", () => {

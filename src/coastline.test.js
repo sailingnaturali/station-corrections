@@ -80,22 +80,33 @@ test("nearest water from a point already in water is itself", () => {
 
 test("coverage bounds are derived from the coastline data", () => {
   const b = coverageBounds();
-  // scripts/build-coastline.mjs clips to [-125.5, 47.0, -122.0, 50.5].
-  assert.ok(Math.abs(b.minLat - 47.0) < 0.01, `minLat was ${b.minLat}`);
-  assert.ok(Math.abs(b.maxLat - 50.5) < 0.01, `maxLat was ${b.maxLat}`);
-  assert.ok(Math.abs(b.minLon - -125.5) < 0.01, `minLon was ${b.minLon}`);
-  assert.ok(Math.abs(b.maxLon - -122.0) < 0.01, `maxLon was ${b.maxLon}`);
+  // scripts/build-coastline.mjs floors the clip at the Salish Sea box
+  // [-125.5, 47.0, -122.0, 50.5] and grows it outward to enclose the registry
+  // (#9), so the south/east edges stay put while the north/west follow the
+  // northern CHS gates. Exact edges move with the registry, so assert the
+  // invariant, not fixed numbers: the floor is preserved and the box only ever
+  // grew from it.
+  assert.ok(Math.abs(b.minLat - 47.0) < 0.01, `minLat (floor) was ${b.minLat}`);
+  assert.ok(Math.abs(b.maxLon - -122.0) < 0.01, `maxLon (floor) was ${b.maxLon}`);
+  assert.ok(b.maxLat >= 50.5, `maxLat should cover past the old clip, was ${b.maxLat}`);
+  assert.ok(b.minLon <= -125.5, `minLon should cover past the old clip, was ${b.minLon}`);
 });
 
+// A point beyond the coastline in every direction, whatever the current clip -
+// derived from the bounds so it can't go stale when the clip grows (#9).
+const b = coverageBounds();
+const OUTSIDE = [b.maxLat + 1, b.minLon - 1];
+
 test("positions outside the clip are not covered", () => {
-  // Weynton Passage - a real CHS gate north of the Salish Sea clip.
-  assert.equal(isWithinCoverage(50.6033, -126.8117), false);
+  assert.equal(isWithinCoverage(...OUTSIDE), false);
+  // Weynton Passage - a real CHS gate, now inside the registry-derived clip.
+  assert.equal(isWithinCoverage(50.6033, -126.8117), true);
   // Dodd Narrows - inside.
   assert.equal(isWithinCoverage(49.1344, -123.8171), true);
 });
 
 test("an uncovered position is not silently reported as water", () => {
   // This is the bug: isOnLand cannot tell "no land here" from "no data here".
-  assert.equal(isOnLand(50.6033, -126.8117), false);
-  assert.equal(isWithinCoverage(50.6033, -126.8117), false);
+  assert.equal(isOnLand(...OUTSIDE), false);
+  assert.equal(isWithinCoverage(...OUTSIDE), false);
 });

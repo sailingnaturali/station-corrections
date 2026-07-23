@@ -3,8 +3,14 @@ import assert from "node:assert/strict";
 import { auditStations, classify } from "./audit.js";
 import { createResolver } from "./resolve.js";
 import { loadCorrections } from "./corrections.js";
+import { coverageBounds } from "./coastline.js";
 
 const resolve = createResolver({ corrections: loadCorrections("") });
+
+// A point beyond the coastline in every direction, whatever the current clip -
+// derived from the bounds so it can't go stale as the clip grows north (#9).
+const b = coverageBounds();
+const UNCOVERED = { latitude: b.maxLat + 1, longitude: b.minLon - 1 };
 
 test("reports a station whose published position is ashore", () => {
   // 48.515, -122.62 measures ~433 m inland against the bundled coastline -
@@ -78,7 +84,7 @@ test("reports rather than throws when no water is found within range", () => {
 });
 
 test("classify refuses to call an uncovered position clear", () => {
-  const resolved = { id: "x", name: "X", latitude: 50.6033, longitude: -126.8117 };
+  const resolved = { id: "x", name: "X", ...UNCOVERED };
   assert.deepEqual(classify(resolved), { verdict: "unverifiable" });
 });
 
@@ -98,7 +104,7 @@ test("classify only ever returns one of its four documented verdicts", () => {
     longitude: -124.63574,
     positionVerified: "up the Quillayute River; the coastline maps ocean only",
   };
-  const uncovered = { id: "x", name: "X", latitude: 50.6033, longitude: -126.8117 };
+  const uncovered = { id: "x", name: "X", ...UNCOVERED };
   const clear = { id: "noaa/9449880", name: "FRIDAY HARBOR", latitude: 48.546, longitude: -123.013 };
   const ashore = { id: "noaa/8", name: "ANACORTES", latitude: 48.515, longitude: -122.62 };
 

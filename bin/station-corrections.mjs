@@ -6,7 +6,7 @@ import { buildLock, readLock, diffLock } from "../src/lock.js";
 import { buildSlugsLock, readSlugsLock, checkSlugs } from "../src/slugs-lock.js";
 import { createBundledResolver } from "../src/index.js";
 import { loadCorrections, validateCorrections, validateAgainstStations } from "../src/corrections.js";
-import { validatePositions, coverageWarnings } from "../src/validate-positions.js";
+import { validatePositions, coverageWarnings, coverageFailures } from "../src/validate-positions.js";
 import { loadRegistry, validateRegistry } from "../src/registry.js";
 import { isWithinCoverage } from "../src/coastline.js";
 import { fileURLToPath } from "node:url";
@@ -70,13 +70,19 @@ if (command === "validate") {
     ...validatePositions(corrections),
     ...validateRegistry(registry, { corrections }),
     ...validatePositions(registry),
+    // A registry station outside the coastline is a failure, not a note: the
+    // package owns its position, so one the audit can never reach is unbacked
+    // (#9). The build clip derives from the registry extent, so this stays
+    // green as long as the coastline is rebuilt when the registry grows.
+    ...coverageFailures(registry),
     ...(stations ? validateAgainstStations(corrections, stations) : []),
   ];
   for (const problem of problems) console.error(problem);
 
-  // Not failures: a position outside the clipped coastline is unconfirmable,
-  // not wrong. Printed so nobody reads a clean run as "all positions checked".
-  for (const warning of [...coverageWarnings(corrections), ...coverageWarnings(registry)]) {
+  // A *correction* outside the clip is unconfirmable, not wrong - it points at
+  // an external provider station whose true location the package does not own.
+  // Printed so nobody reads a clean run as "all positions checked".
+  for (const warning of coverageWarnings(corrections)) {
     console.error(`note: ${warning}`);
   }
   if (!stations) {

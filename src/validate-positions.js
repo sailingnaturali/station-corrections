@@ -60,3 +60,23 @@ export function coverageWarnings(map) {
   }
   return warnings;
 }
+
+/**
+ * The same out-of-coverage positions as `coverageWarnings`, worded as
+ * failures. Used for the registry, where being outside the clip is a defect,
+ * not a note: the registry is stations this package owns and asserts a
+ * position for, so one the on-land audit can never reach is a claim the
+ * package cannot back. The build clip is derived from the registry's own
+ * extent (scripts/build-coastline.mjs), so the fix is to rebuild the
+ * coastline. Corrections stay a note - a correction points at an external
+ * provider station whose true location the package does not own, so
+ * "unconfirmable" there is honest rather than a defect.
+ */
+export function coverageFailures(map) {
+  return coverageWarnings(map).map((w) =>
+    w.replace(
+      "outside coastline coverage - cannot be verified",
+      "outside coastline coverage - a registry station must sit within the bundled coastline so the on-land audit can reach it; rebuild the coastline (scripts/build-coastline.mjs derives the clip from the registry)",
+    ),
+  );
+}

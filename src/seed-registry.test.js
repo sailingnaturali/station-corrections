@@ -53,24 +53,19 @@ test("slugs are unique across the registry", () => {
   assert.equal(new Set(slugs).size, slugs.length);
 });
 
-// The three northern gates sit outside the coastline clip. Pinned so that a
-// future coastline covering them changes this test visibly, rather than
-// silently converting an unverifiable position into a verified one.
-const OUTSIDE_COVERAGE = [
-  "chs-blackney-passage",
-  "chs-johnstone-strait-central",
-  "chs-weynton-passage",
-];
-
-test("only the known northern gates are outside coastline coverage", () => {
-  const warned = coverageWarnings(registry).map((w) => w.split(":")[0]);
-  assert.deepEqual(warned.sort(), [...OUTSIDE_COVERAGE].sort());
+// #9: the coastline clip is derived from the registry's own extent, so every
+// gate - including the three northern ones (Blackney, Johnstone Strait central,
+// Weynton) that used to fall outside the Salish Sea clip - now sits within
+// coverage. Pinned so a registry station growing beyond the clip without a
+// coastline rebuild fails here, rather than silently going unaudited.
+test("every registry station is within coastline coverage", () => {
+  assert.deepEqual(coverageWarnings(registry), []);
 });
 
-// The spec requires every registry position to be either confirmed in water
-// or reported as outside coverage. The test above pins the three
-// out-of-coverage gates; this pins the other 16 as actually in water -
-// without it, a registry position drifting onto land would pass silently.
-test("every in-coverage registry position is in water", () => {
+// The spec requires every registry position to be either confirmed in water or
+// reported as outside coverage. The test above pins that all gates are now
+// covered; this pins that every one is actually in water - without it, a
+// registry position drifting onto land would pass silently.
+test("every registry position is in water", () => {
   assert.deepEqual(validatePositions(registry), []);
 });

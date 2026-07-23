@@ -5,6 +5,7 @@ import { mkdtempSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { coverageBounds } from "../src/coastline.js";
 
 const bin = fileURLToPath(new URL("./station-corrections.mjs", import.meta.url));
 const lockPath = fileURLToPath(new URL("../data/audit.lock.json", import.meta.url));
@@ -213,18 +214,27 @@ test("a station that moves from clear to ashore is re-audited, not trusted from 
   });
 });
 
-test("validate checks the registry and reports coverage gaps as notes", () => {
+test("validate passes with every registry station within the coastline clip", () => {
   const result = run(["validate"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stderr, /corrections and registry files are valid/);
-  // The three northern gates cannot be checked against the clipped coastline.
-  assert.match(result.stderr, /outside coastline coverage/);
+  // The clip is derived from the registry extent (#9), so the northern CHS
+  // gates that used to fall outside it are now covered - no coverage gap.
+  assert.doesNotMatch(result.stderr, /outside coastline coverage/);
 });
 
-// Weynton Passage sits north of the clipped coastline (see coverageWarnings),
-// so audit cannot tell water from land there - it must say "not checked",
-// not silently report a "clear" it never computed.
-const OUT_OF_COVERAGE_STATION = { id: "test/weynton", name: "WEYNTON STATION", latitude: 50.6033, longitude: -126.8117 };
+// A point beyond the coastline in every direction, whatever the current clip -
+// derived from the bounds so it can't go stale as the clip grows north (#9).
+// Audit cannot tell water from land out here, so it must say "not checked",
+// not silently report a "clear" it never computed. (Weynton Passage, the old
+// fixture, is now inside the registry-derived clip.)
+const outside = coverageBounds();
+const OUT_OF_COVERAGE_STATION = {
+  id: "test/offshore",
+  name: "OFFSHORE STATION",
+  latitude: outside.maxLat + 1,
+  longitude: outside.minLon - 1,
+};
 
 test("audit reports stations outside coastline coverage as not checked, not cleared", () => {
   withRealLockBackup(() => {
