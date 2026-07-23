@@ -202,6 +202,11 @@ another station's current slug **or** its `formerSlugs` (a recycled slug would s
 old links to the wrong station, worse than a 404), plus a malformed `formerSlugs` entry. Move a
 slug and record its old value in `formerSlugs` in the same change, then regenerate the lock.
 
+One judgment no check can make: only record a former slug when the new slug points at the **same
+place**. A genuine rename qualifies; a mislabel does not — redirecting a mislabelled slug preserves
+a wrong link, where a 404 is the more honest outcome (this is why the `anacortes` slug was retired
+without one). Slug changes are rare, and a downstream consumer owns the redirect either way.
+
 ## Contributing a correction
 
 Edit `data/corrections.yaml`, then run `npm run build:data` — the YAML is the source of truth,
