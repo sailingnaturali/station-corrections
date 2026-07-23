@@ -50,15 +50,25 @@ export function readSlugsLock(json) {
 /**
  * Compare a slugs lock against the current corrections and registry data.
  *
- * Fails only on the one thing that needs history to detect: a station's slug
- * differing from the lock without the old value recorded in `formerSlugs`.
+ * The lock's job is to pin the slug this repo last shipped for every station,
+ * so this fails whenever the lock and the data disagree in any direction:
+ *
+ * - a slug that *moved* without the old value recorded in `formerSlugs` (the
+ *   one case that needs history to detect);
+ * - a station in the data but *absent from the lock*, whose slug entered the
+ *   API unguarded - this and every future change to it would pass silently
+ *   for want of a pinned value to compare against (#8);
+ * - a lock entry with *no station in the data*, whose slug is now dead and
+ *   whose formerSlugs are unreachable (#8).
+ *
+ * The last two are the same failure class the coastline-coverage check closed:
+ * a clean result reported for something never actually examined. Regenerating
+ * with `station-corrections slugs` resolves all three.
+ *
  * The static checks that don't need history - malformed formerSlugs entries,
  * a slug colliding with any station's formerSlugs - live in
  * validateCorrections/validateRegistry instead, alongside the existing
  * current-slug collision check they already perform.
- *
- * A station absent from the current data (removed) or absent from the lock
- * (new) is not this check's concern - nothing "changed" for either.
  */
 export function checkSlugs(lock, corrections, registry) {
   const problems = [];
@@ -66,7 +76,13 @@ export function checkSlugs(lock, corrections, registry) {
 
   for (const [id, lockedSlug] of Object.entries(lock.slugs)) {
     const nowSlug = current.get(id);
-    if (nowSlug === undefined || nowSlug === lockedSlug) continue;
+    if (nowSlug === undefined) {
+      problems.push(
+        `${id}: in the slug lock but no longer in the data - its slug "${lockedSlug}" is dead - run \`station-corrections slugs\``,
+      );
+      continue;
+    }
+    if (nowSlug === lockedSlug) continue;
 
     const record = corrections.get(id) ?? registry.get(id);
     const formerSlugs = record && Array.isArray(record.formerSlugs) ? record.formerSlugs : [];
@@ -74,6 +90,12 @@ export function checkSlugs(lock, corrections, registry) {
       problems.push(
         `${id}: slug changed from "${lockedSlug}" to "${nowSlug}" without recording "${lockedSlug}" in formerSlugs`,
       );
+    }
+  }
+
+  for (const [id, slug] of current) {
+    if (!(id in lock.slugs)) {
+      problems.push(`${id}: slug "${slug}" is not in the lock - run \`station-corrections slugs\``);
     }
   }
 

@@ -85,14 +85,21 @@ chs-a:
   assert.match(problems[0], /chs-a/);
 });
 
-test("a new station absent from the lock is not reported", () => {
+test("a station in the data but absent from the lock fails - its slug entered the API unguarded (#8)", () => {
   const lock = buildSlugsLock(new Map(), new Map());
   const corrections = loadCorrections("noaa/1:\n  slug: everett\n");
-  assert.deepEqual(checkSlugs(lock, corrections, new Map()), []);
+  const problems = checkSlugs(lock, corrections, new Map());
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /noaa\/1/);
+  assert.match(problems[0], /everett/);
+  assert.match(problems[0], /lock/);
 });
 
-test("a station removed since the lock was written is not reported", () => {
+test("a station removed from the data but still in the lock fails - its slug is now dead (#8)", () => {
   const corrections = loadCorrections("noaa/1:\n  slug: everett\n");
   const lock = buildSlugsLock(corrections, new Map());
-  assert.deepEqual(checkSlugs(lock, new Map(), new Map()), []);
+  const problems = checkSlugs(lock, new Map(), new Map());
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /noaa\/1/);
+  assert.match(problems[0], /everett/);
 });
