@@ -212,5 +212,137 @@
     ],
     "provider": "noaa",
     "source": "NOAA CO-OPS station; position from the NOAA station page, not the CHS fitting pipeline that supplies the other gates. See PROVENANCE.md."
+  },
+  "chs-owen-bay": {
+    "name": "Owen Bay",
+    "context": "Sonora Island",
+    "position": [
+      50.31,
+      -125.223
+    ],
+    "provider": "chs",
+    "kind": "tide"
+  },
+  "chs-campbell-river": {
+    "name": "Campbell River",
+    "context": "Discovery Passage",
+    "position": [
+      50.042,
+      -125.247
+    ],
+    "provider": "chs",
+    "kind": "tide"
+  },
+  "chs-point-atkinson": {
+    "name": "Point Atkinson",
+    "context": "West Vancouver",
+    "position": [
+      49.337,
+      -123.254
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "aliases": [
+      "lighthouse park"
+    ]
+  },
+  "chs-vancouver": {
+    "name": "Vancouver",
+    "context": "Burrard Inlet",
+    "position": [
+      49.286,
+      -123.1
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "cities": [
+      "Vancouver"
+    ],
+    "aliases": [
+      "vancouver harbour"
+    ]
+  },
+  "chs-port-alberni": {
+    "name": "Port Alberni",
+    "context": "Alberni Inlet",
+    "position": [
+      49.226,
+      -124.814
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "aliases": [
+      "alberni"
+    ]
+  },
+  "chs-tofino": {
+    "name": "Tofino",
+    "context": "Clayoquot Sound",
+    "position": [
+      49.154,
+      -125.913
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "aliases": [
+      "clayoquot"
+    ]
+  },
+  "chs-fulford-harbour": {
+    "name": "Fulford Harbour",
+    "context": "Salt Spring Island",
+    "position": [
+      48.769,
+      -123.451
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "aliases": [
+      "fulford"
+    ]
+  },
+  "chs-port-renfrew": {
+    "name": "Port Renfrew",
+    "context": "Port San Juan",
+    "position": [
+      48.555,
+      -124.421
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "aliases": [
+      "san juan"
+    ]
+  },
+  "chs-victoria": {
+    "name": "Victoria",
+    "context": "Inner Harbour",
+    "position": [
+      48.424,
+      -123.371
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "cities": [
+      "Victoria"
+    ],
+    "aliases": [
+      "victoria harbour",
+      "inner harbour"
+    ]
+  },
+  "chs-sooke": {
+    "name": "Sooke",
+    "context": "Strait of Juan de Fuca",
+    "position": [
+      48.37,
+      -123.726
+    ],
+    "provider": "chs",
+    "kind": "tide",
+    "aliases": [
+      "sooke basin",
+      "sooke harbour"
+    ]
   }
 }

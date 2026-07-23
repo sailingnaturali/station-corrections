@@ -19,13 +19,22 @@ test("the shipped registry is valid against the shipped corrections", () => {
 });
 
 // The one non-CHS entry: a NOAA current station carried here because
-// currents-vault, which curates the same 20 gates, is dropping station
-// identity in favour of this registry. Named so a station going missing or a
-// provider silently changing (either direction) still fails loudly.
+// currents-vault, which curates the same gates, is dropping station identity
+// in favour of this registry. Named so a station going missing or a provider
+// silently changing (either direction) still fails loudly.
 const NOAA_GATES = ["noaa-boundary-pass"];
 
-test("every CHS gate in the fitting pipeline is present, plus the one NOAA gate", () => {
-  assert.equal(registry.size, 19 + NOAA_GATES.length);
+// The 10 CHS tide reference ports (chs-online design spec §6b). CHS designates
+// these itself - we did not choose the set. Pinned so one going missing, or a
+// current gate drifting into the tide set, fails loudly.
+const REFERENCE_PORTS = [
+  "chs-owen-bay", "chs-campbell-river", "chs-point-atkinson", "chs-vancouver",
+  "chs-port-alberni", "chs-tofino", "chs-fulford-harbour", "chs-port-renfrew",
+  "chs-victoria", "chs-sooke",
+];
+
+test("every registry station is a CHS station except the one NOAA gate", () => {
+  assert.equal(registry.size, 29 + NOAA_GATES.length);
   for (const [id, record] of registry) {
     if (NOAA_GATES.includes(id)) {
       assert.equal(record.provider, "noaa", `${id} is not a noaa provider`);
@@ -34,6 +43,22 @@ test("every CHS gate in the fitting pipeline is present, plus the one NOAA gate"
       assert.equal(record.provider, "chs");
     }
   }
+});
+
+test("the 10 tide reference ports resolve, each classed as a tide", () => {
+  for (const id of REFERENCE_PORTS) {
+    assert.ok(registry.has(id), `${id} missing from the registry`);
+    const r = resolve({ id });
+    assert.ok(r.name, `${id} has no name`);
+    assert.notEqual(r.context, "", `${id} has no context`);
+    assert.notEqual(r.context.toLowerCase(), r.name.toLowerCase(), `${id} context restates the name`);
+    assert.equal(r.kind, "tide", `${id} is not classed as a tide`);
+  }
+});
+
+test("tide ports and current gates are distinguishable, and only the 10 ports are tides", () => {
+  const tides = [...registry.keys()].filter((id) => resolve({ id }).kind === "tide");
+  assert.deepEqual(tides.sort(), [...REFERENCE_PORTS].sort());
 });
 
 test("every station resolves with a name, a context and a position", () => {
