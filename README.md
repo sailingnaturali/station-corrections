@@ -159,6 +159,17 @@ A station outside the clipped coastline (see Coverage, above) is not in the asho
 way: there is no land data to check it against, so it is not silently read as clear. `audit`
 prints a separate `N station(s) outside coastline coverage - not checked` line for these.
 
+## A decommissioned gauge is still a station
+
+Most Salish Sea stations we correct read as `removed` in NOAA's metadata — 32 of the 41 NOAA
+stations audited here. That flag means the physical water-level **gauge** was pulled, not that the
+station is gone: NOAA still publishes harmonic tide predictions for every one of them, which is
+exactly why a prediction app bundles them. `removed` is the normal state of a subordinate station,
+not a reason to drop or flag it. This package carries no decommissioned/operational field for that
+reason — it would mislabel the majority of the corpus while distinguishing nothing a consumer can
+act on. The only stations that ever needed attention were the two whose *position* couldn't be
+placed (issue #1), and that is a placement problem, resolved in the corrections file.
+
 ## Pinning results with a lock
 
 ```bash
