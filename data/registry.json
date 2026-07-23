@@ -213,6 +213,26 @@
     "provider": "noaa",
     "source": "NOAA CO-OPS station; position from the NOAA station page, not the CHS fitting pipeline that supplies the other gates. See PROVENANCE.md."
   },
+  "chs-malibu-rapids": {
+    "name": "Malibu Rapids",
+    "context": "Princess Louisa Inlet",
+    "position": [
+      50.1626,
+      -123.8515
+    ],
+    "provider": "chs",
+    "kind": "current",
+    "aliases": [
+      "princess louisa",
+      "malibu islet"
+    ],
+    "source": "No CHS current station; slack is derived from Point Atkinson high/low water (HW+25 / LW+35 min, cruising-community consensus - Points North seminar, Waggoner). Position is in the Malibu Rapids channel on the Jervis Inlet approach, nudged ~110 m off the CHS Malibu Islet station (50.163, -123.85), which sits sub-resolution on the bundled coastline. See PROVENANCE.md.",
+    "derived": {
+      "reference": "chs-point-atkinson",
+      "hwLagMinutes": 25,
+      "lwLagMinutes": 35
+    }
+  },
   "chs-owen-bay": {
     "name": "Owen Bay",
     "context": "Sonora Island",

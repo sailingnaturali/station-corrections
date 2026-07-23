@@ -97,6 +97,35 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
       problems.push(`${id}: kind "${record.kind}" must be "tide" or "current"`);
     }
 
+    // A `derived` block marks a current gate whose slack comes from a reference
+    // tide port's high/low water rather than a fitted current series (see the
+    // registry header). It carries the reference key and the two per-gate lags;
+    // the reference must exist and be a tide port, or slack would derive from
+    // the wrong water. Only a current gate may be derived - a tide port is the
+    // thing others derive *from*, not a derived station itself.
+    if (record.derived !== undefined) {
+      const d = record.derived;
+      if (typeof d !== "object" || d === null || Array.isArray(d)) {
+        problems.push(`${id}: derived must be an object`);
+      } else {
+        if (record.kind === "tide") {
+          problems.push(`${id}: a tide port cannot be derived`);
+        }
+        if (!isNonEmptyString(d.reference)) {
+          problems.push(`${id}: derived.reference is required`);
+        } else if (!registry.has(d.reference)) {
+          problems.push(`${id}: derived.reference "${d.reference}" is not a station in this registry`);
+        } else if (registry.get(d.reference).kind !== "tide") {
+          problems.push(`${id}: derived.reference "${d.reference}" must be a tide port (kind: tide)`);
+        }
+        for (const field of ["hwLagMinutes", "lwLagMinutes"]) {
+          if (typeof d[field] !== "number" || !Number.isFinite(d[field])) {
+            problems.push(`${id}: derived.${field} must be a number`);
+          }
+        }
+      }
+    }
+
     if (isString(record.name) && isString(record.context) && namesOverlap(record.name, record.context)) {
       problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
     }

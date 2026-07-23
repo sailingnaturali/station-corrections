@@ -34,6 +34,48 @@ test("accepts kind tide or current, rejects any other value", () => {
   assert.match(problems[0], /kind/);
 });
 
+test("accepts a derived gate referencing an existing tide port", () => {
+  const yaml = `
+chs-point-atkinson:
+  name: Point Atkinson
+  context: West Vancouver
+  position: [49.337, -123.254]
+  provider: chs
+  kind: tide
+chs-malibu-rapids:
+  name: Malibu Rapids
+  context: Princess Louisa Inlet
+  position: [50.163, -123.85]
+  provider: chs
+  kind: current
+  derived:
+    reference: chs-point-atkinson
+    hwLagMinutes: 25
+    lwLagMinutes: 35
+`;
+  assert.deepEqual(validateRegistry(loadRegistry(yaml)), []);
+});
+
+test("rejects a derived block that is malformed or points at the wrong reference", () => {
+  const derived = (body) =>
+    `chs-tide:\n  name: Ref\n  context: Somewhere\n  position: [49.3, -123.2]\n  provider: chs\n  kind: tide\n` +
+    `chs-x:\n  name: X\n  context: Elsewhere\n  position: [50.1, -123.8]\n  provider: chs\n  kind: current\n  derived:\n${body}`;
+  // missing reference + non-numeric lag
+  let p = validateRegistry(loadRegistry(derived("    hwLagMinutes: soon\n    lwLagMinutes: 35\n")));
+  assert.ok(p.some((m) => /derived.reference is required/.test(m)));
+  assert.ok(p.some((m) => /derived.hwLagMinutes must be a number/.test(m)));
+  // reference to an unknown station
+  p = validateRegistry(loadRegistry(derived("    reference: chs-nope\n    hwLagMinutes: 25\n    lwLagMinutes: 35\n")));
+  assert.ok(p.some((m) => /not a station in this registry/.test(m)));
+  // reference to a current gate (not a tide port)
+  const toGate =
+    `chs-gate:\n  name: Gate\n  context: A\n  position: [49.3, -123.2]\n  provider: chs\n  kind: current\n` +
+    `chs-x:\n  name: X\n  context: B\n  position: [50.1, -123.8]\n  provider: chs\n  kind: current\n` +
+    `  derived:\n    reference: chs-gate\n    hwLagMinutes: 25\n    lwLagMinutes: 35\n`;
+  p = validateRegistry(loadRegistry(toGate));
+  assert.ok(p.some((m) => /must be a tide port/.test(m)));
+});
+
 test("requires name, position and provider", () => {
   const problems = validateRegistry(loadRegistry("chs-x:\n  context: Somewhere\n"));
   assert.equal(problems.length, 3);

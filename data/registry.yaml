@@ -14,6 +14,12 @@
 # Both rules are expansion-friendly and rule-governed; neither is a cap. A
 # consumer picks the right CHS series (currents vs tides) by a station's kind.
 #
+# A current gate may additionally carry a `derived` block when CHS publishes no
+# current station for it and slack is derived from a reference tide port's
+# high/low water (see the "Derived gates" section below). It stays kind:current
+# - it is still a gate - but a consumer reads its slack from the reference, not
+# from a fitted current series.
+#
 # Keys match what chs-constituents emits ("chs-" + slug of the label), so a
 # consumer can resolve straight from the id in its own output.
 #
@@ -175,6 +181,34 @@ noaa-boundary-pass:
   source: >-
     NOAA CO-OPS station; position from the NOAA station page, not the CHS
     fitting pipeline that supplies the other gates. See PROVENANCE.md.
+
+# --- Derived gates (kind: current + a `derived` block) ---
+# A current gate CHS publishes no current station for: slack does not come from
+# a fitted current series but is *derived* from a reference tide port's high and
+# low water, plus a fixed per-gate lag. `derived.reference` is the registry key
+# of that tide port; `hwLagMinutes`/`lwLagMinutes` are minutes after its HW/LW
+# that slack occurs. The pass floods on the rising tide and ebbs on the falling
+# one, so a consumer states slack times and a flood/ebb phase, but never a
+# speed - CHS predicts none. Distinct from a fitted gate, which carries its own
+# constituents; a derived gate carries only the reference and the two lags.
+
+chs-malibu-rapids:
+  name: Malibu Rapids
+  context: Princess Louisa Inlet
+  position: [50.1626, -123.8515]
+  provider: chs
+  kind: current
+  aliases: [princess louisa, malibu islet]
+  source: >-
+    No CHS current station; slack is derived from Point Atkinson high/low water
+    (HW+25 / LW+35 min, cruising-community consensus - Points North seminar,
+    Waggoner). Position is in the Malibu Rapids channel on the Jervis Inlet
+    approach, nudged ~110 m off the CHS Malibu Islet station (50.163, -123.85),
+    which sits sub-resolution on the bundled coastline. See PROVENANCE.md.
+  derived:
+    reference: chs-point-atkinson
+    hwLagMinutes: 25
+    lwLagMinutes: 35
 
 # --- Tide reference ports (kind: tide) ---
 # CHS designates these reference ports itself; probing the 47-51.5N / 126.5-122W
