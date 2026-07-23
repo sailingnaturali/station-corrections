@@ -116,6 +116,19 @@ chs-dodd-narrows:
   provider: chs
 ```
 
+The registry holds **two bounded, hand-curated classes**, told apart by `kind`:
+
+- **Current gates** (`kind: current`, or omitted — the registry was gates-only first). A current
+  station joins when *safe transit requires timing slack* — the gates on the Inside Passage route,
+  not every interesting current.
+- **Tide reference ports** (`kind: tide`). A tide station joins when *CHS itself designates it a
+  reference port* — an external rule we did not invent, and one that keeps a hand-written list
+  small enough to stay honest rather than becoming a mirror of CHS's whole station table.
+
+Both rules are expansion-friendly and rule-governed; neither is a cap. A consumer reads `kind` to
+pick the right CHS series (currents vs tides) when resolving a station to live data. `kind` is the
+only field that differs by class — everything else is the same shape.
+
 The registry ships **no provider-minted identifier.** The key, `chs-dodd-narrows`, is the public
 id — stable and safe in a URL. Joining this record to a provider's live data (a CHS gate's
 current fitting, say) is done by **name**, and the provider's own opaque handle is resolved at
@@ -128,9 +141,12 @@ too, for the same reason: both files feed the one slug namespace a consumer rout
 A corrected `position` is checked for plausible distance from what the provider published; a
 registry position is not, because it *is* the published value. That absence is deliberate.
 
-**Coverage.** The bundled coastline is clipped to the Salish Sea, so positions north of it —
-Blackney Passage, Johnstone Strait, Weynton Passage — cannot be confirmed as being in water.
-`validate` reports these as notes rather than passing them silently.
+**Coverage.** The bundled coastline clip is derived from the registry's own extent (see
+[Finding stations that are on land](#finding-stations-that-are-on-land)), so every registry
+position sits within it — the northern gates (Blackney, Johnstone Strait, Weynton) that once fell
+outside the Salish Sea box are now covered. A registry station outside coverage is a `validate`
+**failure**, not a note: the package owns its position, so one the on-land audit can never reach
+is a claim it cannot back.
 
 ## Finding stations that are on land
 

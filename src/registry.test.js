@@ -23,6 +23,17 @@ test("accepts a valid registry", () => {
   assert.deepEqual(validateRegistry(loadRegistry(VALID)), []);
 });
 
+test("accepts kind tide or current, rejects any other value", () => {
+  const withKind = (kind) =>
+    `chs-x:\n  name: X\n  context: Somewhere\n  position: [48.4, -123.3]\n  provider: chs\n  kind: ${kind}\n`;
+  for (const kind of ["tide", "current"]) {
+    assert.deepEqual(validateRegistry(loadRegistry(withKind(kind))), [], `${kind} should be valid`);
+  }
+  const problems = validateRegistry(loadRegistry(withKind("tidal")));
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /kind/);
+});
+
 test("requires name, position and provider", () => {
   const problems = validateRegistry(loadRegistry("chs-x:\n  context: Somewhere\n"));
   assert.equal(problems.length, 3);

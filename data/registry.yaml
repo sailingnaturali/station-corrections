@@ -5,6 +5,15 @@
 # published one. CHS tidal-current gates are the first data like this - the
 # fitting pipeline emits a hand-written label and no position at all.
 #
+# Two bounded, hand-curated classes, told apart by `kind`:
+#   - current gates (`kind: current`, or omitted - the registry was gates-only
+#     first). A current station joins when safe transit requires timing slack:
+#     the gates on the Inside Passage route, not every interesting current.
+#   - tide reference ports (`kind: tide`). A tide station joins when CHS itself
+#     designates it a reference port - an external rule we did not invent.
+# Both rules are expansion-friendly and rule-governed; neither is a cap. A
+# consumer picks the right CHS series (currents vs tides) by a station's kind.
+#
 # Keys match what chs-constituents emits ("chs-" + slug of the label), so a
 # consumer can resolve straight from the id in its own output.
 #

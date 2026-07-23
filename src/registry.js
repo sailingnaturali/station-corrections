@@ -88,6 +88,15 @@ export function validateRegistry(registry, { corrections = new Map() } = {}) {
       if (lon < -180 || lon > 180) problems.push(`${id}: longitude ${lon} is out of range`);
     }
 
+    // `kind` distinguishes a tide reference port from a current gate - the two
+    // bounded classes the registry curates (see the file header). Optional: the
+    // registry was currents-only until tide ports arrived, so an absent kind
+    // reads as "current" (resolve.js applies that default). When set it must be
+    // one of the two - a typo like "tidal" would silently mis-route a station.
+    if (record.kind !== undefined && record.kind !== "tide" && record.kind !== "current") {
+      problems.push(`${id}: kind "${record.kind}" must be "tide" or "current"`);
+    }
+
     if (isString(record.name) && isString(record.context) && namesOverlap(record.name, record.context)) {
       problems.push(`${id}: context repeats the name ("${record.name}" / "${record.context}")`);
     }

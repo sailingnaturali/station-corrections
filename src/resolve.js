@@ -130,6 +130,11 @@ function resolveOwned(id, owned) {
     corrected: false,
     derived: false,
     formerSlugs: owned.formerSlugs ?? [],
+    // The registry was currents-only until tide reference ports arrived, so an
+    // entry with no `kind` is a current gate. Defaulting here (not in the data)
+    // keeps the 19 existing entries untouched while the resolved record always
+    // carries an explicit kind for a consumer to filter on.
+    kind: owned.kind === "tide" ? "tide" : "current",
   };
 }
 

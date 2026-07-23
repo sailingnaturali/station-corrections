@@ -273,6 +273,30 @@ test("the registry outranks provider data", () => {
   assert.equal(r.latitude, 49.1344);
 });
 
+test("a registry station's kind flows through to the resolved record", () => {
+  const tideRegistry = new Map([
+    ["chs-victoria", { name: "Victoria", position: [48.424, -123.371], provider: "chs", kind: "tide" }],
+  ]);
+  const r = createResolver({ registry: tideRegistry })({ id: "chs-victoria" });
+  assert.equal(r.kind, "tide");
+});
+
+test("a registry station without a kind defaults to current - the registry was currents first", () => {
+  // chs-dodd-narrows in the shared fixture sets no kind.
+  const r = withRegistry({ id: "chs-dodd-narrows" });
+  assert.equal(r.kind, "current");
+});
+
+test("a tide port and a current gate are distinguishable after resolving", () => {
+  const mixed = new Map([
+    ["chs-victoria", { name: "Victoria", position: [48.424, -123.371], provider: "chs", kind: "tide" }],
+    ["chs-active-pass", { name: "Active Pass", position: [48.8604, -123.3128], provider: "chs" }],
+  ]);
+  const resolve = createResolver({ registry: mixed });
+  assert.equal(resolve({ id: "chs-victoria" }).kind, "tide");
+  assert.equal(resolve({ id: "chs-active-pass" }).kind, "current");
+});
+
 test("a station not in the registry falls through to the overlay unchanged", () => {
   const r = withRegistry({ id: "noaa/9447659", name: "Everett", latitude: 47.98, longitude: -122.223 });
   assert.equal(r.name, "Everett");

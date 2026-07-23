@@ -76,6 +76,12 @@ export interface ResolvedStation {
   formerSlugs: string[];
   /** Present only when the correction sets it. */
   positionVerified?: string;
+  /**
+   * `"tide"` for a reference port, `"current"` for a gate. Present only for a
+   * registry-owned station (a correction/source station carries no class);
+   * a registry entry with no `kind` resolves to `"current"`.
+   */
+  kind?: "tide" | "current";
 }
 
 export type Resolver = (station: Station | StationRef) => ResolvedStation;
@@ -183,6 +189,12 @@ export interface RegistryStation {
   aliases?: string[];
   /** Slugs this station used to resolve to. A consumer builds a redirect map from these. */
   formerSlugs?: string[];
+  /**
+   * `"tide"` for a reference port, `"current"` for a gate — the two bounded
+   * classes the registry curates. Optional: the registry was currents-only
+   * until tide ports arrived, so an omitted `kind` means `"current"`.
+   */
+  kind?: "tide" | "current";
 }
 
 /** Registry entries keyed by stable station id, e.g. `chs-dodd-narrows`. */

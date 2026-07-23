@@ -51,6 +51,7 @@ source.
 |-------|--------|
 | `name` | **Hand-written label.** Renaming and re-casing shouting provider names (`CHERRY POINT` → `Cherry Point`) is the whole point of this package — original editorial work, reviewed by a person. |
 | `context`, `cities`, `aliases` | **Hand-written here.** Not present in provider data; original. |
+| `kind` | **Our editorial classification** (`tide` / `current`), assigned by a person against the membership rules the registry writes down — not a field copied from any provider. |
 | `position` | **Independently derived and human-verified.** CHS gate positions come from the `chs-constituents` fitting pipeline and `currents-vault` pass frontmatter, cross-checked against `chs-constituents/stations/salish-sea.json`, then audited against a coastline and reviewed by a person — not lifted from a CHS station export. |
 | provider id | **Deliberately absent.** The registry carries no provider-minted identifier at all — not even as a reference. A consumer joins a record here to a provider's live data by name; the provider's own opaque handle is resolved at runtime by whoever holds a licence to that provider's API, and it never enters this repository. |
 
