@@ -6,7 +6,8 @@
       48.8604,
       -123.3128
     ],
-    "provider": "chs"
+    "provider": "chs",
+    "tideReference": "chs-fulford-harbour"
   },
   "chs-arran-rapids": {
     "name": "Arran Rapids",
@@ -27,7 +28,8 @@
     "provider": "chs",
     "aliases": [
       "surge narrows"
-    ]
+    ],
+    "tideReference": "chs-owen-bay"
   },
   "chs-blackney-passage": {
     "name": "Blackney Passage",
@@ -72,7 +74,8 @@
     ],
     "aliases": [
       "lions gate"
-    ]
+    ],
+    "tideReference": "chs-vancouver"
   },
   "chs-gabriola-passage": {
     "name": "Gabriola Passage",
@@ -102,7 +105,8 @@
       50.3001,
       -125.2083
     ],
-    "provider": "chs"
+    "provider": "chs",
+    "tideReference": "chs-owen-bay"
   },
   "chs-johnstone-strait-central": {
     "name": "Johnstone Strait - Central",
@@ -132,7 +136,8 @@
       49.015,
       -123.585
     ],
-    "provider": "chs"
+    "provider": "chs",
+    "tideReference": "chs-fulford-harbour"
   },
   "chs-race-passage": {
     "name": "Race Passage",
@@ -156,7 +161,8 @@
     "provider": "chs",
     "aliases": [
       "skookumchuck"
-    ]
+    ],
+    "tideReference": "chs-point-atkinson"
   },
   "chs-second-narrows": {
     "name": "Second Narrows",
@@ -168,7 +174,8 @@
     "provider": "chs",
     "cities": [
       "Vancouver"
-    ]
+    ],
+    "tideReference": "chs-vancouver"
   },
   "chs-seymour-narrows": {
     "name": "Seymour Narrows",
@@ -180,7 +187,8 @@
     "provider": "chs",
     "cities": [
       "Campbell River"
-    ]
+    ],
+    "tideReference": "chs-campbell-river"
   },
   "chs-tillicum-bridge": {
     "name": "Tillicum Bridge",
@@ -192,7 +200,8 @@
     "provider": "chs",
     "cities": [
       "Victoria"
-    ]
+    ],
+    "tideReference": "chs-victoria"
   },
   "chs-weynton-passage": {
     "name": "Weynton Passage",
