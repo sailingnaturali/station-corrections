@@ -1,6 +1,6 @@
 {
   "note": "Current slug per station, so a change can be detected without re-reading git history. `station-corrections check-slugs` fails when a slug moved without the old value recorded in formerSlugs. Regenerate with `station-corrections slugs`.",
-  "generated": "2026-07-21",
+  "generated": "2026-07-23",
   "slugs": {
     "noaa/9447659": "everett",
     "noaa/9442396": "la-push",
@@ -23,6 +23,16 @@
     "chs-seymour-narrows": "seymour-narrows",
     "chs-tillicum-bridge": "tillicum-bridge",
     "chs-weynton-passage": "weynton-passage",
-    "noaa-boundary-pass": "boundary-pass"
+    "noaa-boundary-pass": "boundary-pass",
+    "chs-owen-bay": "owen-bay",
+    "chs-campbell-river": "campbell-river",
+    "chs-point-atkinson": "point-atkinson",
+    "chs-vancouver": "vancouver",
+    "chs-port-alberni": "port-alberni",
+    "chs-tofino": "tofino",
+    "chs-fulford-harbour": "fulford-harbour",
+    "chs-port-renfrew": "port-renfrew",
+    "chs-victoria": "victoria",
+    "chs-sooke": "sooke"
   }
 }
